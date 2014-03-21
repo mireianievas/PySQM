@@ -64,8 +64,8 @@ from matplotlib import transforms as mtransforms
 import ephem
 from datetime import datetime,date,timedelta
 
-import pysqm_config
-Options = pysqm_config.__dict__
+import pysqm.config
+Options = pysqm.config.__dict__
 Keys = Options.keys()
 Values = Options.values()
 Items = Options.items()
@@ -73,9 +73,9 @@ Items = Options.items()
 # Import config variables
 for index in xrange(len(Items)):
 	if "__" not in str(Items[index][0]):
-		exec("from pysqm_config import "+str(Items[index][0]))
+		exec("from pysqm.config import "+str(Items[index][0]))
 
-from pysqm_common import *
+from pysqm.common import *
 
 for directory in [monthly_data_directory,daily_graph_directory,current_graph_directory]:
 	if not os.path.exists(directory):
@@ -775,9 +775,9 @@ def make_plot(send_emails=False,write_stats=False):
 	NSBPlot.close_figure()
 
 	if send_emails == True:
-		import pysqm_email
+		import pysqm.email
 		night_label = str(datetime.date.today()-timedelta(days=1))
-		pysqm_email.send_emails(night_label=night_label,Stat=NSBData.Statistics)
+		pysqm.email.send_emails(night_label=night_label,Stat=NSBData.Statistics)
 
 if __name__ == '__main__':
 	# Exec the main program

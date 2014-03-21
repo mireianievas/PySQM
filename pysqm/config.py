@@ -155,6 +155,6 @@ limits_sunalt = [-90,5]
 Email options
 -------------
 '''
-# Requires pysqm_email.py module. Not released yet!.
+# Requires pysqm.email.py module. Not released yet!.
 _send_data_by_email = False
 

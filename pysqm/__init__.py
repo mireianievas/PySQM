@@ -60,17 +60,17 @@ import ephem
 import numpy as np
 import struct
 
-from pysqm_common import *
+from .common import *
 
 # Default, to ignore the length of the read string.
 _cal_len_  = None
 _meta_len_ = None
 _data_len_ = None
 
-# Read the config variables from pysqm_config.py
-import pysqm_config
-import pysqm_plot
-Options = pysqm_config.__dict__
+# Read the config variables from pysqm.config.py
+import pysqm.config
+import pysqm.plot
+Options = pysqm.config.__dict__
 #Options.pop('__builtins__')
 Keys = Options.keys()
 Values = Options.values()
@@ -79,7 +79,7 @@ Items = Options.items()
 # Import config variables
 for index in xrange(len(Items)):
 	if "__" not in str(Items[index][0]):
-		exec("from pysqm_config import "+str(Items[index][0]))
+		exec("from pysqm.config import "+str(Items[index][0]))
 
 
 '''
@@ -94,7 +94,7 @@ def relaxed_import(themodule):
 relaxed_import('socket')
 relaxed_import('serial')
 relaxed_import('_mysql')
-relaxed_import('pysqm_email')
+relaxed_import('pysqm.email')
 
 '''
 Conditional imports
@@ -864,7 +864,7 @@ if __name__ == '__main__':
 
 			if niter%_plot_each == 0:
 				''' Each X minutes, plot a new graph '''
-				try: pysqm_plot.make_plot(send_emails=False,write_stats=False)
+				try: pysqm.plot.make_plot(send_emails=False,write_stats=False)
 				except:
 					print('Warning: Error plotting data.')
 					print(sys.exc_info())
@@ -886,13 +886,13 @@ if __name__ == '__main__':
 			if niter>0:
 				mydevice.flush_cache()
 				if _send_data_by_email==True:
-					try: pysqm_plot.make_plot(send_emails=True,write_stats=True)
+					try: pysqm.plot.make_plot(send_emails=True,write_stats=True)
 					except:
 						print('Warning: Error plotting data / sending email.')
 						print(sys.exc_info())
 
 				else:
-					try: pysqm_plot.make_plot(send_emails=False,write_stats=True)
+					try: pysqm.plot.make_plot(send_emails=False,write_stats=True)
 					except:
 						print('Warning: Error plotting data.')
 						print(sys.exc_info())

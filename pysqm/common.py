@@ -58,9 +58,9 @@ import signal
 import datetime
 
 
-# Read the config variables from pysqm_config.py
-import pysqm_config
-Options = pysqm_config.__dict__
+# Read the config variables from pysqm.config.py
+import pysqm.config
+Options = pysqm.config.__dict__
 #Options.pop('__builtins__')
 Keys = Options.keys()
 Values = Options.values()
@@ -69,7 +69,7 @@ Items = Options.items()
 # Import config variables
 for index in xrange(len(Items)):
 	if "__" not in str(Items[index][0]):
-		exec("from pysqm_config import "+str(Items[index][0]))
+		exec("from pysqm.config import "+str(Items[index][0]))
 
 
 def define_ephem_observatory():
