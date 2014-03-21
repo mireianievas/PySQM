@@ -33,7 +33,7 @@ Requirements:
 
 ____________________________
 
-Notes: 
+Notes:
 
 You may need to change the following variables to match your
 observatory coordinates, instrumental properties, etc.
