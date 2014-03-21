@@ -107,7 +107,7 @@ def set_decimals(number,dec=3):
 
 		return(int_+'.'+dec_[:dec])
 
-class observatory():
+class observatory(object):
 	def read_datetime(self):
 		# Get UTC datetime from the computer.
 		#utc_dt = datetime.datetime.utcnow()

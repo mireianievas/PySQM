@@ -329,7 +329,7 @@ class device(observatory):
 			os.remove(self.current_datafile)
 
 
-class SQM():
+class SQM(object):
 	def read_photometer(self,Nmeasures=1,PauseMeasures=2):
 		# Initialize values
 		temp_sensor   = []

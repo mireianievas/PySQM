@@ -82,7 +82,7 @@ for directory in [monthly_data_directory,daily_graph_directory,current_graph_dir
 		os.makedirs(directory)
 
 
-class Ephemerids():
+class Ephemerids(object):
 	def __init__(self):
 		self.Observatory = define_ephem_observatory()
 
@@ -168,16 +168,16 @@ class Ephemerids():
 
 
 
-class SQMData():
+class SQMData(object):
 	# Split pre and after-midnight data
 
-	class premidnight:
+	class premidnight(object):
 		pass
 
-	class aftermidnight:
+	class aftermidnight(object):
 		pass
 
-	class Statistics:
+	class Statistics(object):
 		pass
 
 	def __init__(self,filename,Ephem):
@@ -395,7 +395,7 @@ class SQMData():
 		Stat.max_temperature = np.max(self.astronomical_night_temp)
 
 
-class Plot():
+class Plot(object):
 	def __init__(self,Data,Ephem):
 		plt.hold(True)
 		self.make_figure(figsize=(8,8),thegraph_altsun=True,thegraph_time=True)
