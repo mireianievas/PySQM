@@ -114,99 +114,98 @@ for directory in [monthly_data_directory,daily_data_directory,current_data_direc
 
 
 
-if __name__ == '__main__':
-	'''
-	Select the device to be used based on user input
-	and start the measures
-	'''
+    '''
+    Select the device to be used based on user input
+    and start the measures
+    '''
 
-	if _device_type=='SQM-LU':
-		mydevice = SQMLU()
-	elif _device_type=='SQM-LE':
-		mydevice = SQMLE()
-	else:
-		print('ERROR. Unknown device type '+str(_device_type))
-		exit(0)
+    if _device_type=='SQM-LU':
+            mydevice = SQMLU()
+    elif _device_type=='SQM-LE':
+            mydevice = SQMLE()
+    else:
+            print('ERROR. Unknown device type '+str(_device_type))
+            exit(0)
 
-	'''
-	Ephem is used to calculate moon position (if above horizon)
-	and to determine start-end times of the measures
-	'''
-	observ = define_ephem_observatory()
-	niter = 0
-	DaytimePrint=True
+    '''
+    Ephem is used to calculate moon position (if above horizon)
+    and to determine start-end times of the measures
+    '''
+    observ = define_ephem_observatory()
+    niter = 0
+    DaytimePrint=True
 
-	print('Starting readings ...')
-	while 1<2:
-		''' The programs works as a daemon '''
-		utcdt = mydevice.read_datetime()
-		#print (str(mydevice.local_datetime(utcdt))),
-		if mydevice.is_nighttime(observ):
-			StartDateTime = datetime.datetime.now()
-			niter += 1
+    print('Starting readings ...')
+    while 1<2:
+            ''' The programs works as a daemon '''
+            utcdt = mydevice.read_datetime()
+            #print (str(mydevice.local_datetime(utcdt))),
+            if mydevice.is_nighttime(observ):
+                    StartDateTime = datetime.datetime.now()
+                    niter += 1
 
-			mydevice.define_filenames()
+                    mydevice.define_filenames()
 
-			''' Get values from the photometer '''
-			try:
-				timeutc_mean,timelocal_mean,temp_sensor,\
-				freq_sensor,ticks_uC,sky_brightness = \
-					mydevice.read_photometer(\
-					 Nmeasures=_measures_to_promediate,PauseMeasures=10)
-			except:
-				#raise
-				print('Connection lost')
-				if _reboot_on_connlost == True:
-					sleep(600)
-					os.system('reinicio_programado.bat')
+                    ''' Get values from the photometer '''
+                    try:
+                            timeutc_mean,timelocal_mean,temp_sensor,\
+                            freq_sensor,ticks_uC,sky_brightness = \
+                                    mydevice.read_photometer(\
+                                     Nmeasures=_measures_to_promediate,PauseMeasures=10)
+                    except:
+                            #raise
+                            print('Connection lost')
+                            if _reboot_on_connlost == True:
+                                    sleep(600)
+                                    os.system('reinicio_programado.bat')
 
-				#print('Reseting device')
-				mydevice.reset_device()
-				continue
+                            #print('Reseting device')
+                            mydevice.reset_device()
+                            continue
 
-			formatted_data = mydevice.format_content(\
-				timeutc_mean,timelocal_mean,temp_sensor,\
-				freq_sensor,ticks_uC,sky_brightness)
+                    formatted_data = mydevice.format_content(\
+                            timeutc_mean,timelocal_mean,temp_sensor,\
+                            freq_sensor,ticks_uC,sky_brightness)
 
-			if _use_mysql == True: mydevice.save_data_mysql(formatted_data)
-			mydevice.data_cache(formatted_data,number_measures=_cache_measures)
+                    if _use_mysql == True: mydevice.save_data_mysql(formatted_data)
+                    mydevice.data_cache(formatted_data,number_measures=_cache_measures)
 
-			if niter%_plot_each == 0:
-				''' Each X minutes, plot a new graph '''
-				try: pysqm.plot.make_plot(send_emails=False,write_stats=False)
-				except:
-					print('Warning: Error plotting data.')
-					print(sys.exc_info())
+                    if niter%_plot_each == 0:
+                            ''' Each X minutes, plot a new graph '''
+                            try: pysqm.plot.make_plot(send_emails=False,write_stats=False)
+                            except:
+                                    print('Warning: Error plotting data.')
+                                    print(sys.exc_info())
 
 
-			if DaytimePrint==False:
-				DaytimePrint=True
+                    if DaytimePrint==False:
+                            DaytimePrint=True
 
-			MainDeltaSeconds = (datetime.datetime.now()-StartDateTime).total_seconds()
-			time.sleep(max(1,_delay_between_measures-MainDeltaSeconds))
+                    MainDeltaSeconds = (datetime.datetime.now()-StartDateTime).total_seconds()
+                    time.sleep(max(1,_delay_between_measures-MainDeltaSeconds))
 
-		else:
-			''' Daytime, print info '''
-			if DaytimePrint==True:
-				utcdt = utcdt.strftime("%Y-%m-%d %H:%M:%S")
-				print (utcdt),
-				print('. Daytime. Waiting until '+str(mydevice.next_sunset(observ)))
-				DaytimePrint=False
-			if niter>0:
-				mydevice.flush_cache()
-				if _send_data_by_email==True:
-					try: pysqm.plot.make_plot(send_emails=True,write_stats=True)
-					except:
-						print('Warning: Error plotting data / sending email.')
-						print(sys.exc_info())
+            else:
+                    ''' Daytime, print info '''
+                    if DaytimePrint==True:
+                            utcdt = utcdt.strftime("%Y-%m-%d %H:%M:%S")
+                            print (utcdt),
+                            print('. Daytime. Waiting until '+str(mydevice.next_sunset(observ)))
+                            DaytimePrint=False
+                    if niter>0:
+                            mydevice.flush_cache()
+                            if _send_data_by_email==True:
+                                    try: pysqm.plot.make_plot(send_emails=True,write_stats=True)
+                                    except:
+                                            print('Warning: Error plotting data / sending email.')
+                                            print(sys.exc_info())
 
-				else:
-					try: pysqm.plot.make_plot(send_emails=False,write_stats=True)
-					except:
-						print('Warning: Error plotting data.')
-						print(sys.exc_info())
+                            else:
+                                    try: pysqm.plot.make_plot(send_emails=False,write_stats=True)
+                                    except:
+                                            print('Warning: Error plotting data.')
+                                            print(sys.exc_info())
 
-				niter = 0
-			time.sleep(300)
+                            niter = 0
+                    time.sleep(300)
 
 
