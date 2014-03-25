@@ -46,9 +46,9 @@ __credits__ = [\
 __license__ = "GNU GPL v3"
 __shortname__ = "PySQM"
 __longname__ = "Python Sky Quality Meter pipeline"
-__version__ = "2.4"
+__version__ = "0.1"
 __maintainer__ = "Miguel Nievas"
-__email__ = "miguelnr89[at]gmail[dot]com"
+__email__ = "miguelnievas[at]ucm[dot]es"
 __status__ = "Development" # "Prototype", "Development", or "Production"
 
 
@@ -277,7 +277,7 @@ class device(observatory):
 		if mydb != None:
 			mydb.close()
 
-	def data_cache(self,formatted_data,number_measures=1):
+	def data_cache(self,formatted_data,number_measures=1,niter=0):
 		'''
 		Append data to DataCache str.
 		If len(data)>number_measures, write to file

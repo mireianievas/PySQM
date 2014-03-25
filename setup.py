@@ -10,6 +10,7 @@ setup(name='pysqm',
       license='GPLv3',
       description='SQM reading and plotting software',
       packages=['pysqm'],
+      install_requires=['pyephem','numpy','matplotlib']
       classifiers=[
                    "Programming Language :: C",
                    "Programming Language :: Cython",
