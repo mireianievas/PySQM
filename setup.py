@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='pysqm',
-      version='0.0.1dev',
+      version='0.1',
       author='Miguel Nievas',
       author_email='miguelnievas@ucm.es',
       url='http://guaix.fis.ucm.es/hg/pysqm/',
