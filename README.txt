@@ -66,12 +66,13 @@ present no setup is required.
 HOW IT WORKS
 ============
 
-In a first step, the program tries to connect with the SQM photometer and takes
+In a first step, the program tries to connect to the SQM photometer and takes
 some 'tests' measures (metadata/information, calibration and data) to check 
 that the device is working as expected. 
 
 After that, the program begins data acdquisition. In each iteration, it checks 
-whether it's daytime, and in this case new data is taken. 
+whether it is night-time. In that case new data is taken. 
 
 Each N measurements, the main program calls a plotting function to generate 
 a graphical representation of the current nightly data.
+
