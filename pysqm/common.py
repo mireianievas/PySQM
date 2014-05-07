@@ -56,7 +56,7 @@ import math
 import ephem
 import signal
 import datetime
-
+import time
 
 # Read the config variables from pysqm.config.py
 import pysqm.config
@@ -110,12 +110,13 @@ def set_decimals(number,dec=3):
 class observatory(object):
 	def read_datetime(self):
 		# Get UTC datetime from the computer.
-		#utc_dt = datetime.datetime.utcnow()
-		utc_dt = datetime.datetime.now() - datetime.timedelta(hours=_computer_timezone)
+		utc_dt = datetime.datetime.utcnow()
+		#utc_dt = datetime.datetime.now() - datetime.timedelta(hours=_computer_timezone)
+                #time.localtime(); daylight_saving=_.tm_isdst>0
 		return(utc_dt)
 
 	def local_datetime(self,utc_dt):
-		# Get Local datetime from the computer.
+		# Get Local datetime from the computer, without daylight saving.
 		return(utc_dt + datetime.timedelta(hours=_local_timezone))
 
 	def calculate_sun_altitude(self,OBS,timeutc):
