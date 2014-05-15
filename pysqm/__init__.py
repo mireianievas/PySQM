@@ -60,21 +60,8 @@ import ephem
 import numpy as np
 import struct
 
-from .read import *
-
-# Read the config variables from pysqm.config.py
-import pysqm.config
+from pysqm.read import *
 import pysqm.plot
-Options = pysqm.config.__dict__
-Keys = Options.keys()
-Values = Options.values()
-Items = Options.items()
-
-# Import config variables
-for index in xrange(len(Items)):
-	if "__" not in str(Items[index][0]):
-		exec("from pysqm.config import "+str(Items[index][0]))
-
 
 '''
 This import section is only for software build purposes.
@@ -91,22 +78,28 @@ relaxed_import('_mysql')
 relaxed_import('pysqm.email')
 
 '''
+Read configuration
+'''
+import config
+
+
+'''
 Conditional imports
 '''
 
 # If the old format (SQM_LE/SQM_LU) is used, replace _ with -
-_device_type = _device_type.replace('_','-')
+config._device_type = config._device_type.replace('_','-')
 
-if _device_type == 'SQM-LE':
+if config._device_type == 'SQM-LE':
 	import socket
-elif _device_type == 'SQM-LU':
+elif config._device_type == 'SQM-LU':
 	import serial
-if _use_mysql == True:
+if config._use_mysql == True:
 	import _mysql
 
 
 # Create directories if needed
-for directory in [monthly_data_directory,daily_data_directory,current_data_directory]:
+for directory in [config.monthly_data_directory,config.daily_data_directory,config.current_data_directory]:
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 
@@ -116,12 +109,12 @@ Select the device to be used based on user input
 and start the measures
 '''
 
-if _device_type=='SQM-LU':
+if config._device_type=='SQM-LU':
         mydevice = SQMLU()
-elif _device_type=='SQM-LE':
+elif config._device_type=='SQM-LE':
         mydevice = SQMLE()
 else:
-        print('ERROR. Unknown device type '+str(_device_type))
+        print('ERROR. Unknown device type '+str(config._device_type))
         exit(0)
 
 '''
@@ -148,11 +141,11 @@ while 1<2:
                         timeutc_mean,timelocal_mean,temp_sensor,\
                         freq_sensor,ticks_uC,sky_brightness = \
                                 mydevice.read_photometer(\
-                                 Nmeasures=_measures_to_promediate,PauseMeasures=10)
+                                 Nmeasures=config._measures_to_promediate,PauseMeasures=10)
                 except:
                         #raise
                         print('Connection lost')
-                        if _reboot_on_connlost == True:
+                        if config._reboot_on_connlost == True:
                                 sleep(600)
                                 os.system('reinicio_programado.bat')
 
@@ -164,10 +157,10 @@ while 1<2:
                         timeutc_mean,timelocal_mean,temp_sensor,\
                         freq_sensor,ticks_uC,sky_brightness)
 
-                if _use_mysql == True: mydevice.save_data_mysql(formatted_data)
-                mydevice.data_cache(formatted_data,number_measures=_cache_measures,niter=niter)
+                if config._use_mysql == True: mydevice.save_data_mysql(formatted_data)
+                mydevice.data_cache(formatted_data,number_measures=config._cache_measures,niter=niter)
 
-                if niter%_plot_each == 0:
+                if niter%config._plot_each == 0:
                         ''' Each X minutes, plot a new graph '''
                         try: pysqm.plot.make_plot(send_emails=False,write_stats=False)
                         except:
@@ -179,7 +172,7 @@ while 1<2:
                         DaytimePrint=True
 
                 MainDeltaSeconds = (datetime.datetime.now()-StartDateTime).total_seconds()
-                time.sleep(max(1,_delay_between_measures-MainDeltaSeconds))
+                time.sleep(max(1,config._delay_between_measures-MainDeltaSeconds))
 
         else:
                 ''' Daytime, print info '''
@@ -190,7 +183,7 @@ while 1<2:
                         DaytimePrint=False
                 if niter>0:
                         mydevice.flush_cache()
-                        if _send_data_by_email==True:
+                        if config._send_data_by_email==True:
                                 try: pysqm.plot.make_plot(send_emails=True,write_stats=True)
                                 except:
                                         print('Warning: Error plotting data / sending email.')

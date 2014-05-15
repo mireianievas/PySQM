@@ -51,7 +51,6 @@ __email__ = "miguelnievas[at]ucm[dot]es"
 __status__ = "Development" # "Prototype", "Development", or "Production"
 
 
-
 import os, sys
 import signal
 import numpy as np
@@ -64,20 +63,15 @@ from matplotlib import transforms as mtransforms
 import ephem
 from datetime import datetime,date,timedelta
 
-import pysqm.config
-Options = pysqm.config.__dict__
-Keys = Options.keys()
-Values = Options.values()
-Items = Options.items()
-
-# Import config variables
-for index in xrange(len(Items)):
-	if "__" not in str(Items[index][0]):
-		exec("from pysqm.config import "+str(Items[index][0]))
-
 from pysqm.common import *
 
-for directory in [monthly_data_directory,daily_graph_directory,current_graph_directory]:
+'''
+Read configuration
+'''
+import config
+
+
+for directory in [config.monthly_data_directory,config.daily_graph_directory,config.current_graph_directory]:
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 
@@ -102,7 +96,7 @@ class Ephemerids(object):
 			newdate.year,\
 			newdate.month,\
 			newdate.day,0,0,0)
-		newdatetime = newdatetime-datetime.timedelta(hours=_local_timezone)
+		newdatetime = newdatetime-datetime.timedelta(hours=config._local_timezone)
 
 		return(newdatetime)
 
@@ -268,7 +262,7 @@ class SQMData(object):
 			localdatetime = self.process_datetimes(line[1])
 
 			# Check that datetimes are corrent
-			calc_localdatetime = utcdatetime+timedelta(hours=_local_timezone)
+			calc_localdatetime = utcdatetime+timedelta(hours=config._local_timezone)
 			assert(calc_localdatetime == localdatetime)
 
 			# Set the datetime for astronomical calculations.
@@ -409,25 +403,25 @@ class Plot(object):
 			# We need to divide the plotting in two phases
 			#(pre-midnight and after-midnight)
 			self.thegraph_time.axvspan(\
-			 Ephem.moon_prev_rise+datetime.timedelta(hours=_local_timezone),\
-			 Ephem.moon_next_set+datetime.timedelta(hours=_local_timezone),\
+			 Ephem.moon_prev_rise+datetime.timedelta(hours=config._local_timezone),\
+			 Ephem.moon_next_set+datetime.timedelta(hours=config._local_timezone),\
 		 	 edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
 		else:
 			self.thegraph_time.axvspan(\
-			 Ephem.moon_prev_rise+datetime.timedelta(hours=_local_timezone),\
-			 Ephem.moon_prev_set+datetime.timedelta(hours=_local_timezone),\
+			 Ephem.moon_prev_rise+datetime.timedelta(hours=config._local_timezone),\
+			 Ephem.moon_prev_set+datetime.timedelta(hours=config._local_timezone),\
 			 edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
 			self.thegraph_time.axvspan(\
-			 Ephem.moon_next_rise+datetime.timedelta(hours=_local_timezone),\
-			 Ephem.moon_next_set+datetime.timedelta(hours=_local_timezone),\
+			 Ephem.moon_next_rise+datetime.timedelta(hours=config._local_timezone),\
+			 Ephem.moon_next_set+datetime.timedelta(hours=config._local_timezone),\
 			 edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
 
 	def plot_twilight(self,Ephem):
 		self.thegraph_time.axvline(\
-		 Ephem.twilight_prev_set+datetime.timedelta(hours=_local_timezone),\
+		 Ephem.twilight_prev_set+datetime.timedelta(hours=config._local_timezone),\
 		 color='k', ls='--', lw=2, alpha=0.5, clip_on=True)
 		self.thegraph_time.axvline(\
-		 Ephem.twilight_next_rise+datetime.timedelta(hours=_local_timezone),\
+		 Ephem.twilight_next_rise+datetime.timedelta(hours=config._local_timezone),\
 		 color='k', ls='--', lw=2, alpha=0.5, clip_on=True)
 
 	def make_subplot_sunalt(self,twinplot=0):
@@ -443,13 +437,13 @@ class Plot(object):
 			self.thegraph_sunalt = self.thefigure.add_subplot(2,1,twinplot)
 
 		self.thegraph_sunalt.set_title(\
-		 'Sky Brightness ('+_device_shorttype+'-'+\
-		 _observatory_name+')\n',fontsize='x-large')
+		 'Sky Brightness ('+config._device_shorttype+'-'+\
+		 config._observatory_name+')\n',fontsize='x-large')
 		self.thegraph_sunalt.set_xlabel('Solar altitude (deg)',fontsize='large')
 		self.thegraph_sunalt.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='large')
 
 		# format the ticks (frente a alt sol)
-		tick_values = range(limits_sunalt[0],limits_sunalt[1]+5,5)
+		tick_values = range(config.limits_sunalt[0],config.limits_sunalt[1]+5,5)
 		tick_marks  = np.multiply([deg for deg in tick_values],np.pi/180.0)
 		tick_labels = [str(deg) for deg in tick_values]
 
@@ -471,13 +465,13 @@ class Plot(object):
 		else:
 			self.thegraph_time = self.thefigure.add_subplot(2,1,twinplot)
 
-		if _local_timezone<0:
-			UTC_offset_label = '-'+str(abs(_local_timezone))
-		elif _local_timezone>0:
-			UTC_offset_label = '+'+str(abs(_local_timezone))
+		if config._local_timezone<0:
+			UTC_offset_label = '-'+str(abs(config._local_timezone))
+		elif config._local_timezone>0:
+			UTC_offset_label = '+'+str(abs(config._local_timezone))
 		else: UTC_offset_label = ''
 
-		#self.thegraph_time.set_title('Sky Brightness (SQM-'+_observatory_name+')',\
+		#self.thegraph_time.set_title('Sky Brightness (SQM-'+config._observatory_name+')',\
 		# fontsize='x-large')
 		self.thegraph_time.set_xlabel('Time (UTC'+UTC_offset_label+')',fontsize='large')
 		self.thegraph_time.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='large')
@@ -556,9 +550,9 @@ class Plot(object):
 
 		# Make limits on data range.
 		self.thegraph_sunalt.set_xlim([\
-		 limits_sunalt[0]*np.pi/180.,\
-		 limits_sunalt[1]*np.pi/180.])
-		self.thegraph_sunalt.set_ylim(limits_nsb)
+		 config.limits_sunalt[0]*np.pi/180.,\
+		 config.limits_sunalt[1]*np.pi/180.])
+		self.thegraph_sunalt.set_ylim(config.limits_nsb)
 
 		# Set the xlimit for the time plot.
 
@@ -568,32 +562,32 @@ class Plot(object):
 			 begin_plot_dt.year,\
 			 begin_plot_dt.month,\
 			 begin_plot_dt.day,\
-			 limits_time[0],0,0)
+			 config.limits_time[0],0,0)
 			end_plot_dt = begin_plot_dt+datetime.timedelta(\
-			 hours=24+limits_time[1]-limits_time[0])
+			 hours=24+config.limits_time[1]-config.limits_time[0])
 		elif np.size(Data.aftermidnight.filter)>0:
 			end_plot_dt = Data.aftermidnight.localdates[-1]
 			end_plot_dt = datetime.datetime(\
 			 end_plot_dt.year,\
 			 end_plot_dt.month,\
 			 end_plot_dt.day,\
-			 limits_time[1],0,0)
+			 config.limits_time[1],0,0)
 			begin_plot_dt = end_plot_dt-datetime.timedelta(\
-			 hours=24+limits_time[1]-limits_time[0])
+			 hours=24+config.limits_time[1]-config.limits_time[0])
 		else:
 			print('Warning: Cannot calculate plot limits')
 			return(None)
 
 		self.thegraph_time.set_xlim(begin_plot_dt,end_plot_dt)
 
-		#self.thegraph_time.set_xlim([limits_time[0]*np.pi/180.,limits_time[1]*np.pi/180.])
-		self.thegraph_time.set_ylim(limits_nsb)
+		#self.thegraph_time.set_xlim([config.limits_time[0]*np.pi/180.,config.limits_time[1]*np.pi/180.])
+		self.thegraph_time.set_ylim(config.limits_nsb)
 
 		premidnight_label = str(Data.premidnight.label_dates).replace('[','').replace(']','')
 		aftermidnight_label = str(Data.aftermidnight.label_dates).replace('[','').replace(']','')
 
 		self.thegraph_time.text(0.00,1.01,\
-		 _device_shorttype+'-'+_observatory_name+' '*5+'Serial #'+str(Data.serial_number),\
+		 config._device_shorttype+'-'+config._observatory_name+' '*5+'Serial #'+str(Data.serial_number),\
 		 color='0.25',fontsize='small',fontname='monospace',\
 		 transform = self.thegraph_time.transAxes)
 
@@ -636,7 +630,7 @@ def save_stats_to_file(Night,NSBData,Ephem):
 	Stat = NSBData.Statistics
 
 	Header = \
-	 '# Summary statistics for '+str(_device_shorttype+'_'+_observatory_name)+'\n'+\
+	 '# Summary statistics for '+str(config._device_shorttype+'_'+config._observatory_name)+'\n'+\
 	 '# Description of columns (CSV file):\n'+\
 	 '# Col 1: Date\n'+\
 	 '# Col 2: Total measures\n'+\
@@ -661,8 +655,8 @@ def save_stats_to_file(Night,NSBData,Ephem):
 		'\n'
 
 	statistics_filename = \
-	 summary_data_directory+'/Statistics_'+\
-	 str(_device_shorttype+'_'+_observatory_name)+'.dat'
+	 config.summary_data_directory+'/Statistics_'+\
+	 str(config._device_shorttype+'_'+config._observatory_name)+'.dat'
 
 	print('Writing statistics file')
 
@@ -732,8 +726,8 @@ def make_plot(send_emails=False,write_stats=False):
 
 	print('Ploting photometer data ...')
 
-	input_filename  = current_data_directory+\
-	 '/'+_device_shorttype+'_'+_observatory_name+'.dat'
+	input_filename  = config.current_data_directory+\
+	 '/'+config._device_shorttype+'_'+config._observatory_name+'.dat'
 
 	# Define the observatory in ephem
 	Ephem = Ephemerids()
@@ -757,15 +751,15 @@ def make_plot(send_emails=False,write_stats=False):
 
 	# Save the plot
 	#output_filenames = [\
-	#	current_data_directory+'/'+_device_shorttype+'_'+_observatory_name+'.png',\
-	#	daily_graph_directory+'/'+_device_shorttype+'_'+_observatory_name+\
+	#	config.current_data_directory+'/'+config._device_shorttype+'_'+config._observatory_name+'.png',\
+	#	config.daily_graph_directory+'/'+config._device_shorttype+'_'+config._observatory_name+\
 	#	 '_'+str(NSBData.Night)+'.png'\
 	#	]
 
 	output_filenames = [\
-		current_data_directory+'/'+_device_shorttype+'_'+_observatory_name+'.png',\
-		daily_graph_directory+'/'+str(NSBData.Night).replace('-','')+'_120000_'+\
-		 _device_shorttype+'-'+_observatory_name+'.png'
+		config.current_data_directory+'/'+config._device_shorttype+'_'+config._observatory_name+'.png',\
+		config.daily_graph_directory+'/'+str(NSBData.Night).replace('-','')+'_120000_'+\
+		 config._device_shorttype+'-'+config._observatory_name+'.png'
 		]
 
 	for output_filename in output_filenames:

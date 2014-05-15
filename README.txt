@@ -21,7 +21,7 @@ the invaluable help of:
 SETUP
 =====
 
-After downloading the software, you need to modify the file pysqm/config.py. 
+After downloading the software, you need to modify the file config.py. 
 In this file you will find several variables that need to be configured
 to match your hardware settings. For example:
 
@@ -40,7 +40,7 @@ HOW TO USE THE SOFTWARE
 After configuring the software, make sure you are in the parent directory were
 the README, LICENSE and MANIFEST files are located
 > ls 
-LICENSE.txt  MANIFEST.in  README.txt  pysqm  setup.py
+LICENSE.txt  MANIFEST.in  README.txt  pysqm  config.py  setup.py
 
 And then run the software.
 > python -m pysqm 

@@ -58,26 +58,15 @@ import signal
 import datetime
 import time
 
-# Read the config variables from pysqm.config.py
-import pysqm.config
-Options = pysqm.config.__dict__
-#Options.pop('__builtins__')
-Keys = Options.keys()
-Values = Options.values()
-Items = Options.items()
-
-# Import config variables
-for index in xrange(len(Items)):
-	if "__" not in str(Items[index][0]):
-		exec("from pysqm.config import "+str(Items[index][0]))
-
+# Read the config variables from config.py
+import config
 
 def define_ephem_observatory():
 	''' Define the Observatory in Pyephem '''
 	OBS = ephem.Observer()
-	OBS.lat = _observatory_latitude*ephem.pi/180
-	OBS.lon = _observatory_longitude*ephem.pi/180
-	OBS.elev = _observatory_altitude
+	OBS.lat = config._observatory_latitude*ephem.pi/180
+	OBS.lon = config._observatory_longitude*ephem.pi/180
+	OBS.elev = config._observatory_altitude
 	return(OBS)
 
 def remove_linebreaks(data):
@@ -111,13 +100,13 @@ class observatory(object):
 	def read_datetime(self):
 		# Get UTC datetime from the computer.
 		utc_dt = datetime.datetime.utcnow()
-		#utc_dt = datetime.datetime.now() - datetime.timedelta(hours=_computer_timezone)
+		#utc_dt = datetime.datetime.now() - datetime.timedelta(hours=config._computer_timezone)
                 #time.localtime(); daylight_saving=_.tm_isdst>0
 		return(utc_dt)
 
 	def local_datetime(self,utc_dt):
 		# Get Local datetime from the computer, without daylight saving.
-		return(utc_dt + datetime.timedelta(hours=_local_timezone))
+		return(utc_dt + datetime.timedelta(hours=config._local_timezone))
 
 	def calculate_sun_altitude(self,OBS,timeutc):
 		# Calculate Sun altitude
@@ -128,7 +117,7 @@ class observatory(object):
 	def next_sunset(self,OBS):
 		# Next sunset calculation
 		previous_horizon = OBS.horizon
-		OBS.horizon = str(_observatory_horizon)
+		OBS.horizon = str(config._observatory_horizon)
 		next_setting = OBS.next_setting(ephem.Sun()).datetime()
 		next_setting = next_setting.strftime("%Y-%m-%d %H:%M:%S")
 		OBS.horizon = previous_horizon
@@ -137,7 +126,7 @@ class observatory(object):
 	def is_nighttime(self,OBS):
 		# Is nightime (sun below a given altitude)
 		timeutc = self.read_datetime()
-		if self.calculate_sun_altitude(OBS,timeutc)*180./math.pi>_observatory_horizon:
+		if self.calculate_sun_altitude(OBS,timeutc)*180./math.pi>config._observatory_horizon:
 			return False
 		else:
 			return True

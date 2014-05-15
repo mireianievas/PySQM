@@ -59,25 +59,13 @@ import datetime
 import numpy as np
 import struct
 
-from .common import *
 
 # Default, to ignore the length of the read string.
 _cal_len_  = None
 _meta_len_ = None
 _data_len_ = None
 
-# Read the config variables from pysqm.config.py
-import pysqm.config
-Options = pysqm.config.__dict__
-Keys = Options.keys()
-Values = Options.values()
-Items = Options.items()
-
-# Import config variables
-for index in xrange(len(Items)):
-	if "__" not in str(Items[index][0]):
-		exec("from pysqm.config import "+str(Items[index][0]))
-
+from pysqm.common import *
 
 '''
 This import section is only for software build purposes.
@@ -94,17 +82,22 @@ relaxed_import('_mysql')
 relaxed_import('pysqm.email')
 
 '''
+Read configuration
+'''
+import config
+
+'''
 Conditional imports
 '''
 
 # If the old format (SQM_LE/SQM_LU) is used, replace _ with -
-_device_type = _device_type.replace('_','-')
+config._device_type = config._device_type.replace('_','-')
 
-if _device_type == 'SQM-LE':
+if config._device_type == 'SQM-LE':
 	import socket
-elif _device_type == 'SQM-LU':
+elif config._device_type == 'SQM-LU':
 	import serial
-if _use_mysql == True:
+if config._use_mysql == True:
 	import _mysql
 
 
@@ -147,31 +140,31 @@ class device(observatory):
 
 		# Update data file header with observatory data
 		header_content = header_content.replace(\
-		 '$DEVICE_TYPE',str(_device_type))
+		 '$DEVICE_TYPE',str(config._device_type))
 		header_content = header_content.replace(\
-		 '$DEVICE_ID',str(_device_id))
+		 '$DEVICE_ID',str(config._device_id))
 		header_content = header_content.replace(\
-		 '$DATA_SUPPLIER',str(_data_supplier))
+		 '$DATA_SUPPLIER',str(config._data_supplier))
 		header_content = header_content.replace(\
-		 '$LOCATION_NAME',str(_device_locationname))
+		 '$LOCATION_NAME',str(config._device_locationname))
 		header_content = header_content.replace(\
-		 '$OBSLAT',str(_observatory_latitude))
+		 '$OBSLAT',str(config._observatory_latitude))
 		header_content = header_content.replace(\
-		 '$OBSLON',str(_observatory_longitude))
+		 '$OBSLON',str(config._observatory_longitude))
 		header_content = header_content.replace(\
-		 '$OBSALT',str(_observatory_altitude))
+		 '$OBSALT',str(config._observatory_altitude))
 		header_content = header_content.replace(\
-		 '$OFFSET',str(_offset_calibration))
+		 '$OFFSET',str(config._offset_calibration))
 
-		if _local_timezone==0:
+		if config._local_timezone==0:
 			header_content = header_content.replace(\
 			 '$TIMEZONE','UTC')
-		elif _local_timezone>0:
+		elif config._local_timezone>0:
 			header_content = header_content.replace(\
-			 '$TIMEZONE','UTC+'+str(_local_timezone))
-		elif _local_timezone<0:
+			 '$TIMEZONE','UTC+'+str(config._local_timezone))
+		elif config._local_timezone<0:
 			header_content = header_content.replace(\
-			 '$TIMEZONE','UTC'+str(_local_timezone))
+			 '$TIMEZONE','UTC'+str(config._local_timezone))
 
 		header_content = header_content.replace(\
 		 '$PROTOCOL_NUMBER',str(self.protocol_number))
@@ -218,18 +211,18 @@ class device(observatory):
 		yearmonthday = str(date_file)[0:10]
 
 		self.monthly_datafile = \
-		 monthly_data_directory+"/"+_device_shorttype+\
-		 "_"+_observatory_name+"_"+yearmonth+".dat"
+		 config.monthly_data_directory+"/"+config._device_shorttype+\
+		 "_"+config._observatory_name+"_"+yearmonth+".dat"
 		#self.daily_datafile = \
-		# daily_data_directory+"/"+_device_shorttype+\
-		# "_"+_observatory_name+"_"+yearmonthday+".dat"
+		# config.daily_data_directory+"/"+config._device_shorttype+\
+		# "_"+config._observatory_name+"_"+yearmonthday+".dat"
 		self.daily_datafile = \
-		 daily_data_directory+"/"+\
+		 config.daily_data_directory+"/"+\
 		 yearmonthday.replace('-','')+'_120000_'+\
-		 _device_shorttype+'-'+_observatory_name+'.dat'
+		 config._device_shorttype+'-'+config._observatory_name+'.dat'
 		self.current_datafile = \
-		 current_data_directory+"/"+_device_shorttype+\
-		 "_"+_observatory_name+".dat"
+		 config.current_data_directory+"/"+config._device_shorttype+\
+		 "_"+config._observatory_name+".dat"
 
 	def save_data(self,formatted_data):
 		'''
@@ -258,15 +251,15 @@ class device(observatory):
 		try:
 			''' Start database connection '''
 			mydb = _mysql.connect(\
-			 host = _mysql_host,
-			 user = _mysql_user,
-			 passwd = _mysql_pass,
-			 db = _mysql_database,
-			 port = _mysql_port)
+			 host = config._mysql_host,
+			 user = config._mysql_user,
+			 passwd = config._mysql_pass,
+			 db = config._mysql_database,
+			 port = config._mysql_port)
 
 			''' Insert the data '''
 			mydb.query(\
-			 "INSERT INTO "+str(_mysql_dbtable)+" VALUES (NULL,'"+\
+			 "INSERT INTO "+str(config._mysql_dbtable)+" VALUES (NULL,'"+\
 			 values[0]+"','"+values[1]+"',"+\
 			 values[2]+","+values[3]+","+\
 			 values[4]+","+values[5]+")")
@@ -366,7 +359,7 @@ class SQM(device):
 		sky_brightness = -2.5*np.log10(flux_sensor)
 
 		# Correct from offset (if cover is installed on the photometer)
-		#sky_brightness = sky_brightness+_offset_calibration
+		#sky_brightness = sky_brightness+config._offset_calibration
 
 		return(\
 		 timeutc_mean,timelocal_mean,\
@@ -434,7 +427,7 @@ class SQMLE(SQM):
 
 		try:
 			print('Trying fixed device address ...')
-			self.addr = _device_addr
+			self.addr = config._device_addr
 			self.port = 10001
 			self.start_connection()
 		except:
@@ -622,7 +615,7 @@ class SQMLU(SQM):
 
 		try:
 			print('Trying fixed device address ...')
-			self.addr = _device_addr
+			self.addr = config._device_addr
 			self.bauds = 115200
 			self.start_connection()
 		except:
