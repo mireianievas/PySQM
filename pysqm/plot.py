@@ -51,16 +51,17 @@ __email__ = "miguelnievas[at]ucm[dot]es"
 __status__ = "Development" # "Prototype", "Development", or "Production"
 
 
-import os, sys
-import signal
+import os
+#import sys
+#import signal
+import ephem
 import numpy as np
 import matplotlib
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from matplotlib import scale as mscale
-from matplotlib import transforms as mtransforms
-import ephem
+#from matplotlib import scale as mscale
+#from matplotlib import transforms as mtransforms
 from datetime import datetime,date,timedelta
 
 from pysqm.common import *

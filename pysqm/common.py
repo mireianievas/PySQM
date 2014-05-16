@@ -51,12 +51,12 @@ __email__ = "miguelnievas[at]ucm[dot]es"
 __status__ = "Development" # "Prototype", "Development", or "Production"
 
 
-import sys
+#import sys
 import math
 import ephem
-import signal
+#import signal
 import datetime
-import time
+#import time
 
 # Read the config variables from config.py
 import config

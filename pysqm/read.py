@@ -59,9 +59,6 @@ import datetime
 import numpy as np
 import struct
 
-# DEBUG
-DEBUG=True
-
 # Default, to ignore the length of the read string.
 _cal_len_  = None
 _meta_len_ = None
@@ -87,6 +84,11 @@ relaxed_import('pysqm.email')
 Read configuration
 '''
 import config
+
+try:
+    DEBUG=config.DEBUG
+except:
+    DEBUG=False
 
 '''
 Conditional imports
@@ -546,7 +548,7 @@ class SQMLE(SQM):
             print('ERR. Reading the photometer!')
             return(-1)
         else:
-            print('Sensor info: '+msg)
+            print('Sensor info: '+msg),
             return(msg)
 
     def read_calibration(self,tries=1):
@@ -577,7 +579,7 @@ class SQMLE(SQM):
             print('ERR. Reading the photometer!')
             return(-1)
         else:
-            print('Calibration info: '+msg)
+            print('Calibration info: '+msg),
             return(msg)
 
         return(msg)

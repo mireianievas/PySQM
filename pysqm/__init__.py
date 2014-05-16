@@ -50,8 +50,6 @@ __maintainer__ = "Miguel Nievas"
 __email__ = "miguelnr89[at]gmail[dot]com"
 __status__ = "Development" # "Prototype", "Development", or "Production"
 
-
-from pysqm.main import loop
-
-loop()
+from types import ModuleType
+import sys
 
