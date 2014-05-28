@@ -698,7 +698,7 @@ class SQMLU(SQM):
 
     def reset_device(self):
         ''' Connection reset '''
-        print('Trying to reset connection')
+        #print('Trying to reset connection')
         self.close_connection()
         self.start_connection()
 
