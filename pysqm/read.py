@@ -430,13 +430,14 @@ class SQMLE(SQM):
         '''
 
         try:
-            print('Trying fixed device address ...')
+            print('Trying fixed device address %s ... ' %str(config._device_addr))
             self.addr = config._device_addr
             self.port = 10001
             self.start_connection()
         except:
             print('Trying auto device address ...')
             self.addr = self.search()
+            print('Found address %s ... ' %str(self.addr))
             self.port = 10001
             self.start_connection()
 
@@ -531,24 +532,28 @@ class SQMLE(SQM):
             assert(msg!=None)
             # Sanity check
             assert(len(msg)==_meta_len_ or _meta_len_==None)
-            assert(\
+            assert(tries>0)
+            assert("i," in msg)
+            '''
+			assert(\
              len([msg[index] for index in xrange(len(msg)-1)\
              if msg[index:index+2]=="i,"])==1)
-
+            '''
             self.metadata_process(msg)
         except:
             tries-=1
             if (tries>0):
                 self.reset_device()
-                msg = self.read_metadata()
+                time.sleep(1)
+                msg = self.read_metadata(tries)
 
         # Check that msg contains data
         try: assert(tries>0)
         except:
-            print('ERR. Reading the photometer!')
+            print('ERR. Reading the photometer!: %s' %str(msg))
             return(-1)
         else:
-            print('Sensor info: '+msg),
+            print('Sensor info: '+str(msg)),
             return(msg)
 
     def read_calibration(self,tries=1):
@@ -563,23 +568,27 @@ class SQMLE(SQM):
             # Sanity check
             assert(len(msg)==_cal_len_ or _cal_len_==None)
             assert(tries>0)
+            assert("c," in msg)
+            '''
             assert(\
              len([msg[index] for index in xrange(len(msg)-1)\
              if msg[index:index+2]=="c,"])==1)
+            '''
 
         except:
             tries-=1
             if (tries>0):
                 self.reset_device()
-                msg = self.calibration()
+                time.sleep(1)
+                msg = self.calibration(tries)
 
         # Check that msg contains data
         try: assert(tries>0)
         except:
-            print('ERR. Reading the photometer!')
+            print('ERR. Reading the photometer!: %s' %str(msg))
             return(-1)
         else:
-            print('Calibration info: '+msg),
+            print('Calibration info: '+str(msg)),
             return(msg)
 
         return(msg)
@@ -597,24 +606,27 @@ class SQMLE(SQM):
             # Sanity check
             assert(len(msg)==_data_len_ or _data_len_==None)
             assert(tries>0)
+            assert("r," in msg)
+            '''
             assert(\
              len([msg[index] for index in xrange(len(msg)-1)\
              if msg[index:index+2]=="r,"])==1)
-
+            '''
             self.data_process(msg)
         except:
             tries-=1
             if (tries>0):
                 self.reset_device()
-                msg = self.read_data()
+                time.sleep(1)
+                msg = self.read_data(tries)
 
         # Check that msg contains data
         try: assert(tries>0)
         except:
-            print('ERR. Reading the photometer!')
+            print('ERR. Reading the photometer!: %s' %str(msg))
             return(-1)
         else:
-            if (DEBUG): print('Data msg: '+msg)
+            if (DEBUG): print('Data msg: '+str(msg))
             return(msg)
 
 class SQMLU(SQM):
@@ -625,13 +637,14 @@ class SQMLU(SQM):
         '''
 
         try:
-            print('Trying fixed device address ...')
+            print('Trying fixed device address %s ... ' %str(config._device_addr))
             self.addr = config._device_addr
             self.bauds = 115200
             self.start_connection()
         except:
             print('Trying auto device address ...')
             self.addr = self.search()
+            print('Found address %s ... ' %str(self.addr))
             self.bauds = 115200
             self.start_connection()
 
@@ -720,24 +733,28 @@ class SQMLU(SQM):
             assert(msg!=None)
             # Sanity check
             assert(len(msg)==_meta_len_ or _meta_len_==None)
+            assert("i," in msg)
+            assert(tries>0)
+            '''
             assert(\
              len([msg[index] for index in xrange(len(msg)-1)\
              if msg[index:index+2]=="i,"])==1)
-
+            '''
             self.metadata_process(msg)
         except:
             tries-=1
             if (tries>0):
                 self.reset_device()
-                msg = self.read_metadata()
+                time.sleep(1)
+                msg = self.read_metadata(tries)
 
         # Check that msg contains data
         try: assert(tries>0)
         except:
-            print('ERR. Reading the photometer!')
+            print('ERR. Reading the photometer!: %s' %str(msg))
             return(-1)
         else:
-            if (DEBUG): print('META msg: '+msg)
+            if (DEBUG): print('META msg: '+str(msg))
             return(msg)
 
     def read_calibration(self,tries=1):
@@ -751,23 +768,27 @@ class SQMLU(SQM):
             assert(msg!=None)
             # Sanity check
             assert(len(msg)==_cal_len_ or _cal_len_==None)
-            assert(\
+            assert("c," in msg)
+            assert(tries>0)
+            '''
+			assert(\
              len([msg[index] for index in xrange(len(msg)-1)\
              if msg[index:index+2]=="c,"])==1)
-
+            '''
         except:
             tries-=1
             if (tries>0):
                 self.reset_device()
-                msg = self.read_calibration()
+                time.sleep(1)
+                msg = self.read_calibration(tries)
 
         # Check that msg contains data
         try: assert(tries>0)
         except:
-            print('ERR. Reading the photometer!')
+            print('ERR. Reading the photometer!: %s' %str(msg))
             return(-1)
         else:
-            if (DEBUG): print('CAL msg: '+msg)
+            if (DEBUG): print('CAL msg: '+str(msg))
             return(msg)
 
     def read_data(self,tries=1):
@@ -781,24 +802,29 @@ class SQMLU(SQM):
             assert(msg!=None)
             # Sanity check
             assert(len(msg)==_data_len_ or _data_len_==None)
+            assert("r," in msg)
+            assert(tries>0)
+            '''
             assert(\
              len([msg[index] for index in xrange(len(msg)-1)\
              if msg[index:index+2]=="r,"])==1)
+            '''
 
             self.data_process(msg)
         except:
             tries-=1
             if (tries>0):
                 self.reset_device()
-                msg = self.read_data()
+                time.sleep(1)
+                msg = self.read_data(tries)
 
         # Check that msg contains data
         try: assert(tries>0)
         except:
-            print('ERR. Reading the photometer!')
+            print('ERR. Reading the photometer!: %s' %str(msg))
             return(-1)
         else:
-            if (DEBUG): print('DATA msg: '+msg)
+            if (DEBUG): print('DATA msg: '+str(msg))
             return(msg)
 
         return(msg)
