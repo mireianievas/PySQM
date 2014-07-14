@@ -52,9 +52,14 @@ __status__ = "Development" # "Prototype", "Development", or "Production"
 
 
 import os,sys
-import os.path
+#import inspect
 import time
+#import signal
+#import math
 import datetime
+#import ephem
+#import numpy as np
+#import struct
 
 from pysqm.read import *
 import pysqm.plot
@@ -143,8 +148,9 @@ def loop():
                 print('Connection lost')
                 if config._reboot_on_connlost == True:
                     sleep(600)
-                    os.system('reinicio_programado.bat')
+                    os.system('reboot.bat')
 
+                time.sleep(1)
                 mydevice.reset_device()
 
             formatted_data = mydevice.format_content(\

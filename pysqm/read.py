@@ -46,7 +46,7 @@ __credits__ = [\
 __license__ = "GNU GPL v3"
 __shortname__ = "PySQM"
 __longname__ = "Python Sky Quality Meter pipeline"
-__version__ = "0.1"
+__version__ = "0.2"
 __maintainer__ = "Miguel Nievas"
 __email__ = "miguelnievas[at]ucm[dot]es"
 __status__ = "Development" # "Prototype", "Development", or "Production"
@@ -446,11 +446,13 @@ class SQMLE(SQM):
         buffer_data = self.read_buffer()
         print(buffer_data),
         print('| ... DONE')
+        print('Reading test data (ix,cx,rx)...')
+        time.sleep(1)
         self.ix_readout = self.read_metadata(tries=10)
+        time.sleep(1)
         self.cx_readout = self.read_calibration(tries=10)
+        time.sleep(1)
         self.rx_readout = self.read_data(tries=10)
-        #print('Reading metadata ... '),
-        #print('DONE')
 
     def search(self):
         ''' Search SQM LE in the LAN. Return its adress '''
@@ -489,7 +491,7 @@ class SQMLE(SQM):
     def start_connection(self):
         ''' Start photometer connection '''
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.settimeout(10)
+        self.s.settimeout(20)
         self.s.connect((self.addr,int(self.port)))
         #self.s.settimeout(1)
 
@@ -525,32 +527,31 @@ class SQMLE(SQM):
         ''' Read the serial number, firmware version '''
         self.s.send('ix')
         time.sleep(1)
+
+        read_err = False
         msg = self.read_buffer()
 
         # Check metadata
         try:
-            assert(msg!=None)
             # Sanity check
             assert(len(msg)==_meta_len_ or _meta_len_==None)
-            assert(tries>0)
             assert("i," in msg)
-            '''
-			assert(\
-             len([msg[index] for index in xrange(len(msg)-1)\
-             if msg[index:index+2]=="i,"])==1)
-            '''
             self.metadata_process(msg)
         except:
             tries-=1
-            if (tries>0):
-                self.reset_device()
-                time.sleep(1)
-                msg = self.read_metadata(tries)
+            read_err=True
+
+        if (read_err==True and tries>0):
+            time.sleep(1)
+            self.reset_device()
+            time.sleep(1)
+            msg = self.read_metadata(tries)
+            if (msg!=-1): read_err=False
 
         # Check that msg contains data
-        try: assert(tries>0)
-        except:
+        if read_err==True:
             print('ERR. Reading the photometer!: %s' %str(msg))
+            if (DEBUG): raise
             return(-1)
         else:
             print('Sensor info: '+str(msg)),
@@ -560,74 +561,69 @@ class SQMLE(SQM):
         ''' Read the calibration parameters '''
         self.s.send('cx')
         time.sleep(1)
+
+        read_err = False
         msg = self.read_buffer()
 
-        # Check metadata
+        # Check caldata
         try:
-            assert(msg!=None)
             # Sanity check
             assert(len(msg)==_cal_len_ or _cal_len_==None)
-            assert(tries>0)
             assert("c," in msg)
-            '''
-            assert(\
-             len([msg[index] for index in xrange(len(msg)-1)\
-             if msg[index:index+2]=="c,"])==1)
-            '''
-
         except:
             tries-=1
-            if (tries>0):
-                self.reset_device()
-                time.sleep(1)
-                msg = self.calibration(tries)
+            read_err=True
+
+        if (read_err==True and tries>0):
+            time.sleep(1)
+            self.reset_device()
+            time.sleep(1)
+            msg = self.read_calibration(tries)
+            if (msg!=-1): read_err=False
 
         # Check that msg contains data
-        try: assert(tries>0)
-        except:
+        if read_err==True:
             print('ERR. Reading the photometer!: %s' %str(msg))
+            if (DEBUG): raise
             return(-1)
         else:
             print('Calibration info: '+str(msg)),
             return(msg)
 
-        return(msg)
-
-
     def read_data(self,tries=1):
         ''' Read the SQM and format the Temperature, Frequency and NSB measures '''
         self.s.send('rx')
         time.sleep(1)
+
+        read_err = False
         msg = self.read_buffer()
 
         # Check data
         try:
-            assert(msg!=None)
             # Sanity check
             assert(len(msg)==_data_len_ or _data_len_==None)
-            assert(tries>0)
             assert("r," in msg)
-            '''
-            assert(\
-             len([msg[index] for index in xrange(len(msg)-1)\
-             if msg[index:index+2]=="r,"])==1)
-            '''
             self.data_process(msg)
         except:
             tries-=1
-            if (tries>0):
-                self.reset_device()
-                time.sleep(1)
-                msg = self.read_data(tries)
+            read_err=True
+
+        if (read_err==True and tries>0):
+            time.sleep(1)
+            self.reset_device()
+            time.sleep(1)
+            msg = self.read_data(tries)
+            if (msg!=-1): read_err=False
 
         # Check that msg contains data
-        try: assert(tries>0)
-        except:
+        if read_err==True:
             print('ERR. Reading the photometer!: %s' %str(msg))
+            if (DEBUG): raise
             return(-1)
         else:
             if (DEBUG): print('Data msg: '+str(msg))
             return(msg)
+
 
 class SQMLU(SQM):
     def __init__(self):
@@ -653,11 +649,13 @@ class SQMLU(SQM):
         buffer_data = self.read_buffer()
         print(buffer_data),
         print('| ... DONE')
+        print('Reading test data (ix,cx,rx)...')
+        time.sleep(1)
         self.ix_readout = self.read_metadata(tries=10)
+        time.sleep(1)
         self.cx_readout = self.read_calibration(tries=10)
+        time.sleep(1)
         self.rx_readout = self.read_data(tries=10)
-        print('Reading metadata ... '),
-        print('DONE')
 
 
     def search(self):
@@ -696,7 +694,7 @@ class SQMLU(SQM):
     def start_connection(self):
         '''Start photometer connection '''
 
-        self.s = serial.Serial(self.addr, 115200, timeout=1)
+        self.s = serial.Serial(self.addr, 115200, timeout=2)
 
     def close_connection(self):
         ''' End photometer connection '''
@@ -726,105 +724,100 @@ class SQMLU(SQM):
         ''' Read the serial number, firmware version '''
         self.s.write('ix')
         time.sleep(1)
+
+        read_err = False
         msg = self.read_buffer()
 
         # Check metadata
         try:
-            assert(msg!=None)
             # Sanity check
             assert(len(msg)==_meta_len_ or _meta_len_==None)
             assert("i," in msg)
-            assert(tries>0)
-            '''
-            assert(\
-             len([msg[index] for index in xrange(len(msg)-1)\
-             if msg[index:index+2]=="i,"])==1)
-            '''
             self.metadata_process(msg)
         except:
             tries-=1
-            if (tries>0):
-                self.reset_device()
-                time.sleep(1)
-                msg = self.read_metadata(tries)
+            read_err=True
+
+        if (read_err==True and tries>0):
+            time.sleep(1)
+            self.reset_device()
+            time.sleep(1)
+            msg = self.read_metadata(tries)
+            if (msg!=-1): read_err=False
 
         # Check that msg contains data
-        try: assert(tries>0)
-        except:
+        if read_err==True:
             print('ERR. Reading the photometer!: %s' %str(msg))
+            if (DEBUG): raise
             return(-1)
         else:
-            if (DEBUG): print('META msg: '+str(msg))
+            print('Sensor info: '+str(msg)),
             return(msg)
 
     def read_calibration(self,tries=1):
         ''' Read the calibration data '''
         self.s.write('cx')
         time.sleep(1)
+
+        read_err = False
         msg = self.read_buffer()
 
-        # Check metadata
+        # Check caldata
         try:
-            assert(msg!=None)
             # Sanity check
             assert(len(msg)==_cal_len_ or _cal_len_==None)
             assert("c," in msg)
-            assert(tries>0)
-            '''
-			assert(\
-             len([msg[index] for index in xrange(len(msg)-1)\
-             if msg[index:index+2]=="c,"])==1)
-            '''
         except:
             tries-=1
-            if (tries>0):
-                self.reset_device()
-                time.sleep(1)
-                msg = self.read_calibration(tries)
+            read_err=True
+
+        if (read_err==True and tries>0):
+            time.sleep(1)
+            self.reset_device()
+            time.sleep(1)
+            msg = self.read_calibration(tries)
+            if (msg!=-1): read_err=False
 
         # Check that msg contains data
-        try: assert(tries>0)
-        except:
+        if read_err==True:
             print('ERR. Reading the photometer!: %s' %str(msg))
+            if (DEBUG): raise
             return(-1)
         else:
-            if (DEBUG): print('CAL msg: '+str(msg))
+            print('Calibration info: '+str(msg)),
             return(msg)
 
     def read_data(self,tries=1):
         ''' Read the SQM and format the Temperature, Frequency and NSB measures '''
         self.s.write('rx')
         time.sleep(1)
+
+        read_err = False
         msg = self.read_buffer()
 
         # Check data
         try:
-            assert(msg!=None)
             # Sanity check
             assert(len(msg)==_data_len_ or _data_len_==None)
             assert("r," in msg)
-            assert(tries>0)
-            '''
-            assert(\
-             len([msg[index] for index in xrange(len(msg)-1)\
-             if msg[index:index+2]=="r,"])==1)
-            '''
-
             self.data_process(msg)
         except:
             tries-=1
-            if (tries>0):
-                self.reset_device()
-                time.sleep(1)
-                msg = self.read_data(tries)
+            read_err=True
+
+        if (read_err==True and tries>0):
+            time.sleep(1)
+            self.reset_device()
+            time.sleep(1)
+            msg = self.read_data(tries)
+            if (msg!=-1): read_err=False
 
         # Check that msg contains data
-        try: assert(tries>0)
-        except:
+        if read_err==True:
             print('ERR. Reading the photometer!: %s' %str(msg))
+            if (DEBUG): raise
             return(-1)
         else:
-            if (DEBUG): print('DATA msg: '+str(msg))
+            if (DEBUG): print('Data msg: '+str(msg))
             return(msg)
 
-        return(msg)

@@ -45,13 +45,24 @@ __credits__ = [\
 __license__ = "GNU GPL v3"
 __shortname__ = "PySQM"
 __longname__ = "Python Sky Quality Meter pipeline"
-__version__ = "2.4"
+__version__ = "0.2"
 __maintainer__ = "Miguel Nievas"
-__email__ = "miguelnr89[at]gmail[dot]com"
+__email__ = "miguelnievas[at]ucm[dot]es"
 __status__ = "Development" # "Prototype", "Development", or "Production"
 
+#from types import ModuleType
+#import sys
+import pysqm.main as main
 
-from pysqm.main import loop
-
-loop()
+while(1==1):
+    # Loop forever to make sure the program does not die.
+    try:
+        loop()
+    except Exception, e:
+        print('')
+        print('FATAL ERROR while running the main loop !!')
+        print('Error was:')
+        print(e)
+        print('Trying to restart')
+        print('')
 
