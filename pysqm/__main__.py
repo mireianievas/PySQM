@@ -57,7 +57,7 @@ import pysqm.main as main
 while(1==1):
     # Loop forever to make sure the program does not die.
     try:
-        loop()
+        main.loop()
     except Exception, e:
         print('')
         print('FATAL ERROR while running the main loop !!')
