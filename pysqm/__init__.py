@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-PySQM reading program
+PySQM __init__ code
 ____________________________
 
 Copyright (c) Miguel Nievas <miguelnievas[at]ucm[dot]es>
@@ -45,7 +45,7 @@ __credits__ = [\
 __license__ = "GNU GPL v3"
 __shortname__ = "PySQM"
 __longname__ = "Python Sky Quality Meter pipeline"
-__version__ = "0.2"
+__version__ = "0.3"
 __maintainer__ = "Miguel Nievas"
 __email__ = "miguelnievas[at]ucm[dot]es"
 __status__ = "Development" # "Prototype", "Development", or "Production"

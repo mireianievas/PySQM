@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-PySQM reading program
+PySQM main program
 ____________________________
 
 Copyright (c) Miguel Nievas <miguelnievas[at]ucm[dot]es>
@@ -20,46 +20,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with PySQM.  If not, see <http://www.gnu.org/licenses/>.
-
-____________________________
-
-Requirements:
- - Python 2.7
- - Pyephem
- - Numpy
- - Socket (for SQM-LE). It should be part of standard python install.
- - Serial (for SQM-LU)
- - python-mysql to enable DB datalogging [optional].
-
 ____________________________
 '''
 
-__author__ = "Miguel Nievas"
-__copyright__ = "Copyright (c) 2014 Miguel Nievas"
-__credits__ = [\
- "Miguel Nievas @ UCM",\
- "Jaime Zamorano @ UCM",\
- "Laura Barbas @ OAN",\
- "Pablo de Vicente @ OAN"\
- ]
-__license__ = "GNU GPL v3"
-__shortname__ = "PySQM"
-__longname__ = "Python Sky Quality Meter pipeline"
-__version__ = "2.4"
-__maintainer__ = "Miguel Nievas"
-__email__ = "miguelnr89[at]gmail[dot]com"
-__status__ = "Development" # "Prototype", "Development", or "Production"
-
-
 import os,sys
-#import inspect
 import time
-#import signal
-#import math
 import datetime
-#import ephem
-#import numpy as np
-#import struct
 
 from pysqm.read import *
 import pysqm.plot
@@ -157,7 +123,18 @@ def loop():
                 timeutc_mean,timelocal_mean,temp_sensor,\
                 freq_sensor,ticks_uC,sky_brightness)
 
-            if config._use_mysql == True: mydevice.save_data_mysql(formatted_data)
+            try:
+                assert(config._use_mysql == True)
+                mydevice.save_data_mysql(formatted_data)
+            except:
+                pass
+
+            try:
+                assert(config._send_to_datacenter == True)
+                mydevice.save_data_datacenter(formatted_data)
+            except:
+                pass
+
             mydevice.data_cache(formatted_data,number_measures=config._cache_measures,niter=niter)
 
             if niter%config._plot_each == 0:
@@ -196,6 +173,14 @@ def loop():
                         print(sys.exc_info())
 
                 niter = 0
+
+            # Send data that is still in the datacenter buffer
+            try:
+                assert(config._send_to_datacenter == True)
+                mydevice.save_data_datacenter(formatted_data)
+            except:
+                pass
+
             time.sleep(300)
 
 

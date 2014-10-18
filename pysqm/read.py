@@ -21,36 +21,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with PySQM.  If not, see <http://www.gnu.org/licenses/>.
-
-____________________________
-
-Requirements:
- - Python 2.7
- - Pyephem
- - Numpy
- - Socket (for SQM-LE). It should be part of standard python install.
- - Serial (for SQM-LU)
- - python-mysql to enable DB datalogging [optional].
-
 ____________________________
 '''
-
-__author__ = "Miguel Nievas"
-__copyright__ = "Copyright (c) 2014 Miguel Nievas"
-__credits__ = [\
- "Miguel Nievas @ UCM",\
- "Jaime Zamorano @ UCM",\
- "Laura Barbas @ OAN",\
- "Pablo de Vicente @ OAN"\
- ]
-__license__ = "GNU GPL v3"
-__shortname__ = "PySQM"
-__longname__ = "Python Sky Quality Meter pipeline"
-__version__ = "0.2"
-__maintainer__ = "Miguel Nievas"
-__email__ = "miguelnievas[at]ucm[dot]es"
-__status__ = "Development" # "Prototype", "Development", or "Production"
-
 
 import os,sys
 import inspect
@@ -58,6 +30,7 @@ import time
 import datetime
 import numpy as np
 import struct
+import socket
 
 # Default, to ignore the length of the read string.
 _cal_len_  = None
@@ -75,7 +48,6 @@ def relaxed_import(themodule):
     try: exec('import '+str(themodule))
     except: pass
 
-relaxed_import('socket')
 relaxed_import('serial')
 relaxed_import('_mysql')
 relaxed_import('pysqm.email')
@@ -244,6 +216,64 @@ class device(observatory):
             datafile.close()
 
         self.copy_file(self.daily_datafile,self.current_datafile)
+
+
+    def save_data_datacenter(self,formatted_data):
+        '''
+        This function sends the data from this pysqm client to the central
+        node @ UCM. It saves the data there (only the SQM data file contents)
+        '''
+
+        # Connection details (hardcoded to avoid user changes)
+        DC_HOST = "muon.gae.ucm.es"
+        DC_PORT = 8739
+
+        def send_data(data):
+            try:
+                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client.connect((DC_HOST, DC_PORT))
+                client.sendall(data)
+                client.shutdown(socket.SHUT_RDWR)
+                client.close()
+            except:
+                return(0)
+            else:
+                return(1)
+
+        '''
+        Send the new file initialization to the datacenter
+        Appends the header to the buffer (it will be sent later)
+        '''
+
+        try:
+            self.DataBuffer
+        except:
+            self.DataBuffer=self.standard_file_header().split("\n")[:-1]
+            success = send_data(config._device_id+";;H;;")
+
+            if (success==0):
+                del(self.DataBuffer)
+                return(0)
+
+
+        '''
+        Send the data to the datacenter
+        '''
+
+        # If the buffer is full, dont append more data.
+        if (len(self.DataBuffer)<10000): 
+            self.DataBuffer.append(formatted_data)
+
+        # Try to connect with the datacenter and send the data
+        try:
+            for data_line in self.DataBuffer[:]:
+                success = send_data(config._device_id+";;D;;"+data_line)
+                if (success==1):
+                    self.DataBuffer.remove(data_line)
+        except:
+            return(0)
+        else:
+            return(1)
 
     def save_data_mysql(self,formatted_data):
         '''

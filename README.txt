@@ -76,3 +76,36 @@ whether it is night-time. In that case new data is taken.
 Each N measurements, the main program calls a plotting function to generate 
 a graphical representation of the current nightly data.
 
+
+PySQM known issues
+==================
+
+Non-ASCII characters are not supported in the config.py file. Please, avoid using 'ñ', accented vowels, etc.
+In headless systems, such as the Raspberry PI, if you run the program without X, you may suffer from the following fatal error when the program tries to generate the plot:
+
+This application failed to start because it could not find or load the Qt platform plugin “xcb”.
+Available platform plugins are: eglfs, kms, linuxfb, minimal, minimalegl, offscreen, xcb.
+Reinstalling the application may fix this problem.  Aborted (core dumped)
+
+In order to avoid this problem, you need to create (or modify if the file exists) in your HOME directory the following file: 
+
+.config/matplotlib/matplotlibrc
+
+You just need to set the matplotlib backend to Agg:
+backend : Agg
+
+Save the changes and exit. Now, PySQM should make the plots without issues. You may need to restart PySQM to apply the changes.
+
+
+CHANGELOG
+=========
+
+v0.3:
+    Added datacenter option (optional, disabled by default)
+
+v0.2:
+    ...
+
+v0.1:
+    ...
+

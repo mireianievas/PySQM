@@ -22,24 +22,13 @@ You should have received a copy of the GNU General Public License
 along with PySQM.  If not, see <http://www.gnu.org/licenses/>.
 
 ____________________________
-
-Requirements:
- - Python 2.7
- - Pyephem
- - Numpy
- - Socket (for SQM-LE). It should be part of standard python install.
- - Serial (for SQM-LU)
- - python-mysql to enable DB datalogging [optional].
-
-____________________________
-
 Notes:
 
 You may need to change the following variables to match your
 observatory coordinates, instrumental properties, etc.
 
-Python syntax is mandatory.
-
+Python (v2.7) syntax is mandatory.
+____________________________
 '''
 
 
@@ -112,6 +101,16 @@ current_data_directory = monthly_data_directory
 current_graph_directory = monthly_data_directory
 # Summary with statistics for the night
 summary_data_directory = monthly_data_directory
+
+
+'''
+----------------------------
+PySQM data center (OPTIONAL)
+----------------------------
+'''
+
+# Send the data to the data center
+_send_to_datacenter = True
 
 '''
 ---------------------------------
