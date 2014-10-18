@@ -245,35 +245,35 @@ class device(observatory):
         Appends the header to the buffer (it will be sent later)
         '''
 
-        try:
-            self.DataBuffer
-        except:
+        if (formatted_data=="NEWFILE"):
             self.DataBuffer=self.standard_file_header().split("\n")[:-1]
             success = send_data(config._device_id+";;H;;")
 
             if (success==0):
                 del(self.DataBuffer)
                 return(0)
-
-
-        '''
-        Send the data to the datacenter
-        '''
-
-        # If the buffer is full, dont append more data.
-        if (len(self.DataBuffer)<10000): 
-            self.DataBuffer.append(formatted_data)
-
-        # Try to connect with the datacenter and send the data
-        try:
-            for data_line in self.DataBuffer[:]:
-                success = send_data(config._device_id+";;D;;"+data_line)
-                if (success==1):
-                    self.DataBuffer.remove(data_line)
-        except:
-            return(0)
         else:
-            return(1)
+
+            '''
+            Send the data to the datacenter
+            '''
+
+            # If the buffer is full, dont append more data.
+            if (len(self.DataBuffer)<10000): 
+                self.DataBuffer.append(formatted_data)
+
+            if 
+
+            # Try to connect with the datacenter and send the data
+            try:
+                for data_line in self.DataBuffer[:]:
+                    success = send_data(config._device_id+";;D;;"+data_line)
+                    if (success==1):
+                        self.DataBuffer.remove(data_line)
+            except:
+                return(0)
+            else:
+                return(1)
 
     def save_data_mysql(self,formatted_data):
         '''

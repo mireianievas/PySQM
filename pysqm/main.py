@@ -99,6 +99,14 @@ def loop():
         utcdt = mydevice.read_datetime()
         #print (str(mydevice.local_datetime(utcdt))),
         if mydevice.is_nighttime(observ):
+
+            # If we are in a new night, create the new file.
+            try:
+                assert(config._send_to_datacenter == True)
+                assert(niter == 0)
+                mydevice.save_data_datacenter("NEWFILE")
+            except: pass
+
             StartDateTime = datetime.datetime.now()
             niter += 1
 
@@ -126,14 +134,12 @@ def loop():
             try:
                 assert(config._use_mysql == True)
                 mydevice.save_data_mysql(formatted_data)
-            except:
-                pass
+            except: pass
 
             try:
                 assert(config._send_to_datacenter == True)
                 mydevice.save_data_datacenter(formatted_data)
-            except:
-                pass
+            except: pass
 
             mydevice.data_cache(formatted_data,number_measures=config._cache_measures,niter=niter)
 
@@ -143,7 +149,6 @@ def loop():
                 except:
                     print('Warning: Error plotting data.')
                     print(sys.exc_info())
-
 
             if DaytimePrint==False:
                 DaytimePrint=True
@@ -177,9 +182,8 @@ def loop():
             # Send data that is still in the datacenter buffer
             try:
                 assert(config._send_to_datacenter == True)
-                mydevice.save_data_datacenter(formatted_data)
-            except:
-                pass
+                mydevice.save_data_datacenter("")
+            except: pass
 
             time.sleep(300)
 
