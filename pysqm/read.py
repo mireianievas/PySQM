@@ -227,7 +227,7 @@ class device(observatory):
         # Connection details (hardcoded to avoid user changes)
         DC_HOST = "muon.gae.ucm.es"
         DC_PORT = 8739
-        DEV_ID = str(config._device_id)+"_"+str(self.serial_number) 
+        DEV_ID = str(config._device_id)+"_"+str(self.serial_number)
 
         def send_data(data):
             try:
@@ -237,10 +237,16 @@ class device(observatory):
                 client.shutdown(socket.SHUT_RDWR)
                 client.close()
             except:
-                print('error sending data')
                 return(0)
             else:
                 return(1)
+
+        def write_buffer():
+            for data_line in self.DataBuffer[:]:
+                success = send_data(DEV_ID+";;D;;"+data_line)
+                if (success==1): self.DataBuffer.remove(data_line)
+
+            return(success)
 
         '''
         Send the new file initialization to the datacenter
@@ -250,9 +256,10 @@ class device(observatory):
         if (formatted_data=="NEWFILE"):
             self.DataBuffer=[\
                 hl+"\n" for hl in self.standard_file_header().split("\n")[:-1]]
-            
-            success = send_data(DEV_ID+";;H;;")
-            print(success)
+
+            # Try to connect with the datacenter and send the header
+            success = send_data(DEV_ID+";;C;;")
+            success = write_buffer()
             return(success)
         else:
 
@@ -261,14 +268,11 @@ class device(observatory):
             '''
 
             # If the buffer is full, dont append more data.
-            if (len(self.DataBuffer)<10000): 
+            if (len(self.DataBuffer)<10000):
                 self.DataBuffer.append(formatted_data)
 
             # Try to connect with the datacenter and send the data
-            for data_line in self.DataBuffer[:]:
-                success = send_data(DEV_ID+";;D;;"+data_line)
-                if (success==1):
-                    self.DataBuffer.remove(data_line)
+            success = write_buffer()
             return(success)
 
     def save_data_mysql(self,formatted_data):

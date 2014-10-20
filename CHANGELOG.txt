@@ -1,0 +1,62 @@
+Version 2.4.0
+	general:
+	    Added datacenter support
+
+
+Version 2.3.2
+	general:
+		Adopt v1.0 of the standard format
+		 (including the filename for the daily data and plots)
+	read:
+		put the rx,cx and ix data in the header
+	plot:
+		Change de Serial number label		
+		
+
+Version 2.3.1
+	read:
+		Print the errors in make_plot call on screen.
+	plot:
+		Only print the PM/AM/Moon labels on one panel.
+		Print the SQM serial number.
+
+Version 2.3
+	general:
+		Deep changes to make the program more modular.
+		The program now can be packaged as a single .exe file with PyInstaller.
+		The program can also be packaged for Linux systems.
+	read:
+		Try to use the fixed device address before looking for it automatically
+		 this should allow the use of multiple devices in a single computer.
+	plot:
+		Code cleanup.
+		Use local date/time in plots.
+		Write statistics file.
+		Use pyephem to calculate the moon phase (more accurate).
+		Show the Moon max altitude (transit altitude or culmination).
+		Plot the astronomical twilights.
+		Object Oriented programming.
+	email:
+		Now the program can be distributed without email module.
+
+Version 2.2
+	read:
+		Variables moved to config file.
+		Clean-up of the code.
+		Improve device reset.
+	plot:
+		Variables moved to config file.
+		Renamed from plot_sqmle.py to pysqm_plot.py
+		Make the code and linebreaks less ugly
+	email:
+		Renamed from email_sqmle.py to pysqm_email.py  
+
+Version 2.X
+	read:
+		New read software. OO programing.
+	plot:
+		Fixed axis.
+		Moon phase plot.
+
+Version 1.X
+	First version.
