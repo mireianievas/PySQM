@@ -1,9 +1,9 @@
-Version 2.4.0
+Version 0.3.0
 	general:
 	    Added datacenter support
 
 
-Version 2.3.2
+Version 0.2.2
 	general:
 		Adopt v1.0 of the standard format
 		 (including the filename for the daily data and plots)
@@ -13,14 +13,14 @@ Version 2.3.2
 		Change de Serial number label		
 		
 
-Version 2.3.1
+Version 0.2.1
 	read:
 		Print the errors in make_plot call on screen.
 	plot:
 		Only print the PM/AM/Moon labels on one panel.
 		Print the SQM serial number.
 
-Version 2.3
+Version 0.2.0
 	general:
 		Deep changes to make the program more modular.
 		The program now can be packaged as a single .exe file with PyInstaller.
@@ -39,24 +39,20 @@ Version 2.3
 	email:
 		Now the program can be distributed without email module.
 
-Version 2.2
+Version 0.1.X
 	read:
 		Variables moved to config file.
 		Clean-up of the code.
 		Improve device reset.
+		New read software. OO programing.
 	plot:
 		Variables moved to config file.
 		Renamed from plot_sqmle.py to pysqm_plot.py
 		Make the code and linebreaks less ugly
+		Fixed axis.
+		Moon phase plot.
 	email:
 		Renamed from email_sqmle.py to pysqm_email.py  
 
-Version 2.X
-	read:
-		New read software. OO programing.
-	plot:
-		Fixed axis.
-		Moon phase plot.
-
-Version 1.X
+Version 0.0.X
 	First version.
