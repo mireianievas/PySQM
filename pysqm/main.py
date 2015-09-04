@@ -99,8 +99,8 @@ def loop():
         utcdt = mydevice.read_datetime()
         #print (str(mydevice.local_datetime(utcdt))),
         if mydevice.is_nighttime(observ):
-
             # If we are in a new night, create the new file.
+            config._send_to_datacenter = False ### Not enabled by default
             try:
                 assert(config._send_to_datacenter == True)
                 assert(niter == 0)
