@@ -140,6 +140,8 @@ _mysql_port = None
 Ploting options
 ---------------
 '''
+# Plot only date / full plot (datetime + sun alt)
+full_plot  = False
 # Limits in Y-axis of the plot (Night Sky Background)
 limits_nsb = [15,22]
 # Time (hours) for the beginning and the end of the session. (LOCALTIME)

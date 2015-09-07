@@ -23,7 +23,7 @@ along with PySQM.  If not, see <http://www.gnu.org/licenses/>.
 ____________________________
 '''
 
-import os
+import os,sys
 import ephem
 import numpy as np
 import matplotlib
@@ -361,8 +361,17 @@ class SQMData(object):
 class Plot(object):
     def __init__(self,Data,Ephem):
         plt.hold(True)
-        self.make_figure(figsize=(8,8),thegraph_altsun=True,thegraph_time=True)
-        self.plot_data(Data,Ephem)
+        Data = self.prepare_plot(Data,Ephem)
+        
+        try:
+            assert(config.full_plot is True)
+            self.make_figure(thegraph_altsun=True,thegraph_time=True)
+            self.plot_data_sunalt(Data,Ephem)
+        except:
+            self.make_figure(thegraph_altsun=False,thegraph_time=True)
+
+        self.plot_data_time(Data,Ephem)
+
         self.plot_moonphase(Ephem)
         self.plot_twilight(Ephem)
         plt.hold(False)
@@ -400,8 +409,8 @@ class Plot(object):
         if twinplot = 1, this will be the first subplot
         if twinplot = 2, this will be the second subplot
         '''
-        if twinplot == 0:
-            self.thegraph_sunalt = self.thefigure.add_subplot()
+        if twinplot is 0:
+            self.thegraph_sunalt = self.thefigure.add_subplot(1,1,1)
         else:
             self.thegraph_sunalt = self.thefigure.add_subplot(2,1,twinplot)
 
@@ -409,7 +418,7 @@ class Plot(object):
          'Sky Brightness ('+config._device_shorttype+'-'+\
          config._observatory_name+')\n',fontsize='x-large')
         self.thegraph_sunalt.set_xlabel('Solar altitude (deg)',fontsize='large')
-        self.thegraph_sunalt.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='large')
+        self.thegraph_sunalt.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
 
         # format the ticks (frente a alt sol)
         tick_values = range(config.limits_sunalt[0],config.limits_sunalt[1]+5,5)
@@ -429,8 +438,8 @@ class Plot(object):
         if twinplot = 1, this will be the first subplot
         if twinplot = 2, this will be the second subplot
         '''
-        if twinplot == 0:
-            self.thegraph_time = self.thefigure.add_subplot()
+        if twinplot is 0:
+            self.thegraph_time = self.thefigure.add_subplot(1,1,1)
         else:
             self.thegraph_time = self.thefigure.add_subplot(2,1,twinplot)
 
@@ -443,13 +452,13 @@ class Plot(object):
         #self.thegraph_time.set_title('Sky Brightness (SQM-'+config._observatory_name+')',\
         # fontsize='x-large')
         self.thegraph_time.set_xlabel('Time (UTC'+UTC_offset_label+')',fontsize='large')
-        self.thegraph_time.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='large')
+        self.thegraph_time.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
 
         # format the ticks (vs time)
         daylocator    = mdates.HourLocator(byhour=[4,20])
-        hourlocator = mdates.HourLocator()
-        dayFmt        = mdates.DateFormatter('\n\n%d %b %Y')
-        hourFmt        = mdates.DateFormatter('%H')
+        hourlocator   = mdates.HourLocator()
+        dayFmt        = mdates.DateFormatter('\n%d %b %Y')
+        hourFmt       = mdates.DateFormatter('%H')
 
         self.thegraph_time.xaxis.set_major_locator(daylocator)
         self.thegraph_time.xaxis.set_major_formatter(dayFmt)
@@ -461,22 +470,24 @@ class Plot(object):
         self.thegraph_time.grid(True,which='major',ls='')
         self.thegraph_time.grid(True,which='minor')
 
-    def make_figure(self,figsize=(8,8),thegraph_altsun=True,thegraph_time=True):
+    def make_figure(self,thegraph_altsun=True,thegraph_time=True):
         # Make the figure and the graph
-        self.thefigure = plt.figure(figsize=figsize)
         if thegraph_time==False:
+            self.thefigure = plt.figure(figsize=(7,3.4))
             self.make_subplot_sunalt(twinplot=0)
         elif thegraph_altsun==False:
+            self.thefigure = plt.figure(figsize=(7,3.4))
             self.make_subplot_time(twinplot=0)
         else:
+            self.thefigure = plt.figure(figsize=(7,6.4))
             self.make_subplot_sunalt(twinplot=1)
             self.make_subplot_time(twinplot=2)
 
         # Adjust the space between plots
         plt.subplots_adjust(hspace=0.25)
 
-    def plot_data(self,Data,Ephem):
 
+    def prepare_plot(self,Data,Ephem):
         '''
         Warning! Multiple night plot implementation is pending.
         Until the support is implemented, check that no more than 1 night
@@ -486,29 +497,71 @@ class Plot(object):
         try:
             assert(np.size(Data.Night)==1)
         except:
-            print('Error, more than 1 night in the data file. Check! %d' %np.size(Data.Night))
-            raise
+            print('Warning, more than 1 night in the data file. Check! %d' %np.size(Data.Night))
+
+        # Mean datetime
+        dts       = Data.all_night_dt
+        mean_dt   = dts[0]+np.sum(np.array(dts)-dts[0])/np.size(dts)
+        sel_night = (mean_dt - datetime.timedelta(hours=12)).date()
 
         Data.premidnight.filter = np.array(\
-         [Date.date()==Data.Night for Date in Data.premidnight.localdates])
+         [Date.date()==sel_night for Date in Data.premidnight.localdates])
         Data.aftermidnight.filter = np.array(\
-         [(Date-datetime.timedelta(days=1)).date()==Data.Night\
+         [(Date-datetime.timedelta(days=1)).date()==sel_night\
            for Date in Data.aftermidnight.localdates])
 
+        return(Data)
+
+    def plot_data_sunalt(self,Data,Ephem):
+
+        # Plot the data
         TheData = Data.premidnight
         if np.size(TheData.filter)>0:
             self.thegraph_sunalt.plot(\
              np.array(TheData.sun_altitude)[TheData.filter],\
              np.array(TheData.night_sbs)[TheData.filter],color='g')
+        TheData = Data.aftermidnight
+        if np.size(TheData.filter)>0:
+            self.thegraph_sunalt.plot(\
+             np.array(TheData.sun_altitude)[TheData.filter],\
+             np.array(TheData.night_sbs)[TheData.filter],color='b')
+            
+        # Make limits on data range.
+        self.thegraph_sunalt.set_xlim([\
+         config.limits_sunalt[0]*np.pi/180.,\
+         config.limits_sunalt[1]*np.pi/180.])
+        self.thegraph_sunalt.set_ylim(config.limits_nsb)
+
+        premidnight_label = str(Data.premidnight.label_dates).replace('[','').replace(']','')
+        aftermidnight_label = str(Data.aftermidnight.label_dates).replace('[','').replace(']','')
+
+        self.thegraph_sunalt.text(0.00,1.015,\
+         config._device_shorttype+'-'+config._observatory_name+' '*5+'Serial #'+str(Data.serial_number),\
+         color='0.25',fontsize='small',fontname='monospace',\
+         transform = self.thegraph_sunalt.transAxes)
+
+        self.thegraph_sunalt.text(0.75,0.92,'PM: '+premidnight_label,\
+         color='g',fontsize='small',transform = self.thegraph_sunalt.transAxes)
+        self.thegraph_sunalt.text(0.75,0.84,'AM: '+aftermidnight_label,\
+         color='b',fontsize='small',transform = self.thegraph_sunalt.transAxes)
+
+        if np.size(Data.Night)==1:
+            self.thegraph_sunalt.text(0.747,0.755,'Moon: '+str(int(Ephem.moon_phase))+\
+             '% ('+str(int(Ephem.moon_maxelev*180./np.pi))+'$^\\mathrm{O}$)',\
+             color='r',fontsize='small',transform = self.thegraph_sunalt.transAxes)
+
+
+    def plot_data_time(self,Data,Ephem):
+
+        # Plot the data
+        TheData = Data.premidnight
+        if np.size(TheData.filter)>0:
             self.thegraph_time.plot(\
              np.array(TheData.localdates)[TheData.filter],\
              np.array(TheData.night_sbs)[TheData.filter],color='g')
 
         TheData = Data.aftermidnight
         if np.size(TheData.filter)>0:
-            self.thegraph_sunalt.plot(\
-             np.array(TheData.sun_altitude)[TheData.filter],\
-             np.array(TheData.night_sbs)[TheData.filter],color='b')
             self.thegraph_time.plot(\
              np.array(TheData.localdates)[TheData.filter],\
              np.array(TheData.night_sbs)[TheData.filter],color='b')
@@ -517,14 +570,7 @@ class Plot(object):
         self.thegraph_time.axvline(\
          Data.Night+datetime.timedelta(days=1),color='k', alpha=0.5,clip_on=True)
 
-        # Make limits on data range.
-        self.thegraph_sunalt.set_xlim([\
-         config.limits_sunalt[0]*np.pi/180.,\
-         config.limits_sunalt[1]*np.pi/180.])
-        self.thegraph_sunalt.set_ylim(config.limits_nsb)
-
         # Set the xlimit for the time plot.
-
         if np.size(Data.premidnight.filter)>0:
             begin_plot_dt = Data.premidnight.localdates[-1]
             begin_plot_dt = datetime.datetime(\
@@ -548,41 +594,19 @@ class Plot(object):
             return(None)
 
         self.thegraph_time.set_xlim(begin_plot_dt,end_plot_dt)
-
-        #self.thegraph_time.set_xlim([config.limits_time[0]*np.pi/180.,config.limits_time[1]*np.pi/180.])
         self.thegraph_time.set_ylim(config.limits_nsb)
 
         premidnight_label = str(Data.premidnight.label_dates).replace('[','').replace(']','')
         aftermidnight_label = str(Data.aftermidnight.label_dates).replace('[','').replace(']','')
 
-        self.thegraph_time.text(0.00,1.01,\
+        self.thegraph_time.text(0.00,1.015,\
          config._device_shorttype+'-'+config._observatory_name+' '*5+'Serial #'+str(Data.serial_number),\
          color='0.25',fontsize='small',fontname='monospace',\
          transform = self.thegraph_time.transAxes)
 
-        self.thegraph_sunalt.text(0.80,0.92,'PM: '+premidnight_label,\
-         color='g',fontsize='small',transform = self.thegraph_sunalt.transAxes)
-        self.thegraph_sunalt.text(0.80,0.86,'AM: '+aftermidnight_label,\
-         color='b',fontsize='small',transform = self.thegraph_sunalt.transAxes)
-        '''
-        self.thegraph_time.text(0.03,0.90,'PM: '+premidnight_label,\
-         color='g',fontsize='small',transform = self.thegraph_time.transAxes)
-        self.thegraph_time.text(0.03,0.84,'AM: '+aftermidnight_label,\
-         color='b',fontsize='small',transform = self.thegraph_time.transAxes)
-        '''
-
-        if np.size(Data.Night)==1:
-            '''
-            self.thegraph_time.text(0.03,0.82,'Moon: '+str(int(Ephem.moon_phase))+\
-             '% ('+str(int(Ephem.moon_maxelev*180./np.pi))+'$^\\mathrm{O}$)',\
-             color='r',fontsize='small',transform = self.thegraph_time.transAxes)
-            '''
-            self.thegraph_sunalt.text(0.797,0.795,'Moon: '+str(int(Ephem.moon_phase))+\
-             '% ('+str(int(Ephem.moon_maxelev*180./np.pi))+'$^\\mathrm{O}$)',\
-             color='r',fontsize='small',transform = self.thegraph_sunalt.transAxes)
-
     def save_figure(self,output_filename):
-        self.thefigure.savefig(output_filename, bbox_inches='tight')
+        self.thefigure.tight_layout()
+        self.thefigure.savefig(output_filename, bbox_inches='tight',dpi=150)
 
     def show_figure(self):
         plt.show(self.thefigure)
@@ -683,7 +707,7 @@ def save_stats_to_file(Night,NSBData,Ephem):
     append_file(statistics_filename,formatted_data)
 
 
-def make_plot(send_emails=False,write_stats=False):
+def make_plot(input_filename=None,send_emails=False,write_stats=False):
     '''
     Main function (allows to execute the program
     from within python.
@@ -695,8 +719,9 @@ def make_plot(send_emails=False,write_stats=False):
 
     print('Ploting photometer data ...')
 
-    input_filename  = config.current_data_directory+\
-     '/'+config._device_shorttype+'_'+config._observatory_name+'.dat'
+    if (input_filename is None):
+        input_filename  = config.current_data_directory+\
+         '/'+config._device_shorttype+'_'+config._observatory_name+'.dat'
 
     # Define the observatory in ephem
     Ephem = Ephemerids()
@@ -744,7 +769,7 @@ def make_plot(send_emails=False,write_stats=False):
 
 if __name__ == '__main__':
     # Exec the main program
-    make_plot(send_emails=False,write_stats=False)
+    make_plot(input_filename=sys.argv[1],send_emails=False,write_stats=False)
 
 
 
