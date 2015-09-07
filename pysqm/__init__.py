@@ -20,18 +20,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with PySQM.  If not, see <http://www.gnu.org/licenses/>.
-
-____________________________
-
-Requirements:
- - Python 2.7
- - Pyephem
- - Numpy
- - Socket (for SQM-LE). It should be part of standard python install.
- - Serial (for SQM-LU)
- - python-mysql to enable DB datalogging [optional].
-
-____________________________
 '''
 
 __author__ = "Miguel Nievas"

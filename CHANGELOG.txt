@@ -1,3 +1,14 @@
+Version 0.3.1
+	general:
+		Disable by default datacenter
+	plot:
+		Change default plot size
+		Use tight_layout
+		Improve detection of AM/PM dates
+		Allow to plot only the 2nd plot (NSB vs datetime)
+		plot.py now works also as a standalone tool (with user provided data file path).
+
+
 Version 0.3.0
 	general:
 	    Added datacenter support

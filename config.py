@@ -110,7 +110,7 @@ PySQM data center (OPTIONAL)
 '''
 
 # Send the data to the data center
-_send_to_datacenter = True
+_send_to_datacenter = False
 
 '''
 ---------------------------------
