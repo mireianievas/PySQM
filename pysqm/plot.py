@@ -473,18 +473,18 @@ class Plot(object):
     def make_figure(self,thegraph_altsun=True,thegraph_time=True):
         # Make the figure and the graph
         if thegraph_time==False:
-            self.thefigure = plt.figure(figsize=(7,3.4))
+            self.thefigure = plt.figure(figsize=(7,3.))
             self.make_subplot_sunalt(twinplot=0)
         elif thegraph_altsun==False:
-            self.thefigure = plt.figure(figsize=(7,3.4))
+            self.thefigure = plt.figure(figsize=(7,3.))
             self.make_subplot_time(twinplot=0)
         else:
-            self.thefigure = plt.figure(figsize=(7,6.4))
+            self.thefigure = plt.figure(figsize=(7,6.))
             self.make_subplot_sunalt(twinplot=1)
             self.make_subplot_time(twinplot=2)
 
         # Adjust the space between plots
-        plt.subplots_adjust(hspace=0.25)
+        plt.subplots_adjust(hspace=0.35)
 
 
     def prepare_plot(self,Data,Ephem):
@@ -545,11 +545,13 @@ class Plot(object):
         self.thegraph_sunalt.text(0.75,0.84,'AM: '+aftermidnight_label,\
          color='b',fontsize='small',transform = self.thegraph_sunalt.transAxes)
 
+        '''
         if np.size(Data.Night)==1:
-            self.thegraph_sunalt.text(0.747,0.755,'Moon: '+str(int(Ephem.moon_phase))+\
-             '% ('+str(int(Ephem.moon_maxelev*180./np.pi))+'$^\\mathrm{O}$)',\
-             color='r',fontsize='small',transform = self.thegraph_sunalt.transAxes)
-
+            self.thegraph_sunalt.text(0.75,1.015,'Moon: %d%s (%d%s)' \
+             %(Ephem.moon_phase, "%", Ephem.moon_maxelev*180./np.pi,"$^\mathbf{o}$"),\
+             color='r',fontsize='small',fontname='monospace',\
+             transform = self.thegraph_sunalt.transAxes)
+        '''
 
     def plot_data_time(self,Data,Ephem):
 
@@ -604,16 +606,14 @@ class Plot(object):
          color='0.25',fontsize='small',fontname='monospace',\
          transform = self.thegraph_time.transAxes)
        
-        try:
-            assert(config.full_plot is True)
-        except:
-            if np.size(Data.Night)==1:
-                self.thegraph_time.text(0.747,0.755,'Moon: '+str(int(Ephem.moon_phase))+\
-                 '% ('+str(int(Ephem.moon_maxelev*180./np.pi))+'$^\\mathrm{O}$)',\
-                 color='r',fontsize='small',transform = self.thegraph_time.transAxes)
-
+        if np.size(Data.Night)==1:
+            self.thegraph_time.text(0.75,1.015,'Moon: %d%s (%d%s)' \
+             %(Ephem.moon_phase, "%", Ephem.moon_maxelev*180./np.pi,"$^\mathbf{o}$"),\
+             color='r',fontsize='small',fontname='monospace',\
+             transform = self.thegraph_time.transAxes)
+        
     def save_figure(self,output_filename):
-        self.thefigure.tight_layout()
+        #self.thefigure.tight_layout()
         self.thefigure.savefig(output_filename, bbox_inches='tight',dpi=150)
 
     def show_figure(self):
