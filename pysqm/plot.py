@@ -603,6 +603,14 @@ class Plot(object):
          config._device_shorttype+'-'+config._observatory_name+' '*5+'Serial #'+str(Data.serial_number),\
          color='0.25',fontsize='small',fontname='monospace',\
          transform = self.thegraph_time.transAxes)
+       
+        try:
+            assert(config.full_plot is True)
+        except:
+            if np.size(Data.Night)==1:
+                self.thegraph_time.text(0.747,0.755,'Moon: '+str(int(Ephem.moon_phase))+\
+                 '% ('+str(int(Ephem.moon_maxelev*180./np.pi))+'$^\\mathrm{O}$)',\
+                 color='r',fontsize='small',transform = self.thegraph_time.transAxes)
 
     def save_figure(self,output_filename):
         self.thefigure.tight_layout()
