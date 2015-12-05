@@ -27,6 +27,7 @@ import os,sys
 import ephem
 import numpy as np
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -34,7 +35,6 @@ from datetime import datetime,date,timedelta
 
 from pysqm.common import *
 
-matplotlib.use('Agg')
 
 '''
 Read configuration
