@@ -34,6 +34,8 @@ from datetime import datetime,date,timedelta
 
 from pysqm.common import *
 
+matplotlib.use('Agg')
+
 '''
 Read configuration
 '''
@@ -609,11 +611,10 @@ class Plot(object):
         if np.size(Data.Night)==1:
             self.thegraph_time.text(0.75,1.015,'Moon: %d%s (%d%s)' \
              %(Ephem.moon_phase, "%", Ephem.moon_maxelev*180./np.pi,"$^\mathbf{o}$"),\
-             color='r',fontsize='small',fontname='monospace',\
+             color='black',fontsize='small',fontname='monospace',\
              transform = self.thegraph_time.transAxes)
         
     def save_figure(self,output_filename):
-        #self.thefigure.tight_layout()
         self.thefigure.savefig(output_filename, bbox_inches='tight',dpi=150)
 
     def show_figure(self):

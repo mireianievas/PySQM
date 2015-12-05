@@ -76,7 +76,6 @@ TimeZone of the site and the computer
 # The real timezone of the site (without daylight saving)
 _local_timezone     = +1
 # The computer timezone.
-_computer_timezone  = +0
 # magnitude = read_magnitude + offset
 _offset_calibration = -0.11
 # Reboot if we loose connection
@@ -102,14 +101,13 @@ current_graph_directory = monthly_data_directory
 # Summary with statistics for the night
 summary_data_directory = monthly_data_directory
 
-
 '''
 ----------------------------
 PySQM data center (OPTIONAL)
 ----------------------------
 '''
 
-# Send the data to the data center
+# Send the data to the data center (NOT available yet!)
 _send_to_datacenter = False
 
 '''
