@@ -819,8 +819,18 @@ def make_plot(input_filename=None,send_emails=False,write_stats=False):
         night_label = str(datetime.date.today()-timedelta(days=1))
         pysqm.email.send_emails(night_label=night_label,Stat=NSBData.Statistics)
 
+
+'''
+The following code allows to execute plot.py as a standalone program.
+'''
+
 if __name__ == '__main__':
     # Exec the main program
+    import pysqm.settings as settings
+    InputArguments = settings.ArgParser()
+    configfilename = InputArguments.get_config_filename()
+    settings.GlobalConfig.read_config_file(configfilename)
+    config = settings.GlobalConfig.config
     make_plot(input_filename=sys.argv[1],send_emails=False,write_stats=False)
 
 

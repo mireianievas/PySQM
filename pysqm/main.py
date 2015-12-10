@@ -32,22 +32,14 @@ import argparse
 '''
 Read input arguments (if any)
 '''
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-c', '--config')
-args = parser.parse_args()
-
 import pysqm.settings as settings
+InputArguments = settings.ArgParser()
+configfilename = InputArguments.get_config_filename()
 
-try:
-    assert(args.config!=None)
-except:
-    configfilename = "config.py"
-else:
-    configfilename = args.config
-
-print("Using configuration file: %s." %configfilename)
+# Load config contents into GlobalConfig
 settings.GlobalConfig.read_config_file(configfilename)
+
+# Get the actual config
 config = settings.GlobalConfig.config
     
 ### Load now the rest of the modules
