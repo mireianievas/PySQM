@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config')
 args = parser.parse_args()
 
-from pysqm.settings import ConfigFile
+import pysqm.settings as settings
 
 try:
     assert(args.config!=None)
@@ -47,14 +47,10 @@ else:
     configfilename = args.config
 
 print("Using configuration file: %s." %configfilename)
-ConfObject = ConfigFile(configfilename)
-config = ConfObject.config
+settings.GlobalConfig.read_config_file(configfilename)
+config = settings.GlobalConfig.config
     
-import __builtin__
-__builtin__.config = config
-
 ### Load now the rest of the modules
-
 from pysqm.read import *
 import pysqm.plot
 

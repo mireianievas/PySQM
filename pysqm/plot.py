@@ -39,7 +39,8 @@ from pysqm.common import *
 '''
 Read configuration
 '''
-#import config
+import pysqm.settings as settings
+config = settings.GlobalConfig.config
 
 
 for directory in [config.monthly_data_directory,config.daily_graph_directory,config.current_graph_directory]:
