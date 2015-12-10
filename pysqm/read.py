@@ -55,7 +55,7 @@ relaxed_import('pysqm.email')
 '''
 Read configuration
 '''
-import config
+#import config
 
 try:
     DEBUG=config.DEBUG

@@ -28,7 +28,7 @@ import ephem
 import datetime
 
 # Read the config variables from config.py
-import config
+#import config
 
 def define_ephem_observatory():
     ''' Define the Observatory in Pyephem '''

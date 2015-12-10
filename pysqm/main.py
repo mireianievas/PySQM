@@ -26,6 +26,34 @@ ____________________________
 import os,sys
 import time
 import datetime
+import argparse
+
+
+'''
+Read input arguments (if any)
+'''
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--config')
+args = parser.parse_args()
+
+from pysqm.settings import ConfigFile
+
+try:
+    assert(args.config!=None)
+except:
+    configfilename = "config.py"
+else:
+    configfilename = args.config
+
+print("Using configuration file: %s." %configfilename)
+ConfObject = ConfigFile(configfilename)
+config = ConfObject.config
+    
+import __builtin__
+__builtin__.config = config
+
+### Load now the rest of the modules
 
 from pysqm.read import *
 import pysqm.plot
@@ -43,11 +71,6 @@ relaxed_import('socket')
 relaxed_import('serial')
 relaxed_import('_mysql')
 relaxed_import('pysqm.email')
-
-'''
-Read configuration
-'''
-import config
 
 
 '''

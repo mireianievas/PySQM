@@ -39,7 +39,7 @@ from pysqm.common import *
 '''
 Read configuration
 '''
-import config
+#import config
 
 
 for directory in [config.monthly_data_directory,config.daily_graph_directory,config.current_graph_directory]:
@@ -379,6 +379,9 @@ class Plot(object):
         plt.hold(False)
 
     def plot_moonphase(self,Ephem):
+        '''
+        shade the period of time for which the moon is above the horizon
+        '''
         if Ephem.moon_next_rise > Ephem.moon_next_set:
             # We need to divide the plotting in two phases
             #(pre-midnight and after-midnight)
@@ -397,6 +400,9 @@ class Plot(object):
              edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
 
     def plot_twilight(self,Ephem):
+        '''
+        Plot vertical lines on the astronomical twilights
+        '''
         self.thegraph_time.axvline(\
          Ephem.twilight_prev_set+datetime.timedelta(hours=config._local_timezone),\
          color='k', ls='--', lw=2, alpha=0.5, clip_on=True)
@@ -415,12 +421,20 @@ class Plot(object):
             self.thegraph_sunalt = self.thefigure.add_subplot(1,1,1)
         else:
             self.thegraph_sunalt = self.thefigure.add_subplot(2,1,twinplot)
+        
 
         self.thegraph_sunalt.set_title(\
          'Sky Brightness ('+config._device_shorttype+'-'+\
          config._observatory_name+')\n',fontsize='x-large')
         self.thegraph_sunalt.set_xlabel('Solar altitude (deg)',fontsize='large')
         self.thegraph_sunalt.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
+        
+        # Auxiliary plot (Temperature)
+        '''
+        self.thegraph_sunalt_temp = self.thegraph_sunalt.twinx()
+        self.thegraph_sunalt_temp.set_ylim(-10, 50)
+        self.thegraph_sunalt_temp.set_ylabel('Temperature (C)',fontsize='medium')
+        '''
 
         # format the ticks (frente a alt sol)
         tick_values = range(config.limits_sunalt[0],config.limits_sunalt[1]+5,5)
@@ -455,6 +469,13 @@ class Plot(object):
         # fontsize='x-large')
         self.thegraph_time.set_xlabel('Time (UTC'+UTC_offset_label+')',fontsize='large')
         self.thegraph_time.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
+        
+        # Auxiliary plot (Temperature)
+        '''
+        self.thegraph_time_temp = self.thegraph_time.twinx()
+        self.thegraph_time_temp.set_ylim(-10, 50)
+        self.thegraph_time_temp.set_ylabel('Temperature (C)',fontsize='medium')
+        '''
 
         # format the ticks (vs time)
         daylocator    = mdates.HourLocator(byhour=[4,20])
@@ -499,7 +520,7 @@ class Plot(object):
         try:
             assert(np.size(Data.Night)==1)
         except:
-            print('Warning, more than 1 night in the data file. Check! %d' %np.size(Data.Night))
+            print('Warning, more than 1 night in the data file. Please check it! %d' %np.size(Data.Night))
 
         # Mean datetime
         dts       = Data.all_night_dt
@@ -515,18 +536,30 @@ class Plot(object):
         return(Data)
 
     def plot_data_sunalt(self,Data,Ephem):
-
+        '''
+        Plot NSB data vs Sun altitude
+        '''
         # Plot the data
         TheData = Data.premidnight
         if np.size(TheData.filter)>0:
             self.thegraph_sunalt.plot(\
              np.array(TheData.sun_altitude)[TheData.filter],\
              np.array(TheData.night_sbs)[TheData.filter],color='g')
+            '''
+            self.thegraph_sunalt.plot(\
+             np.array(TheData.sun_altitude)[TheData.filter],\
+             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5))
+            '''
         TheData = Data.aftermidnight
         if np.size(TheData.filter)>0:
             self.thegraph_sunalt.plot(\
              np.array(TheData.sun_altitude)[TheData.filter],\
              np.array(TheData.night_sbs)[TheData.filter],color='b')
+            '''
+            self.thegraph_sunalt.plot(\
+             np.array(TheData.sun_altitude)[TheData.filter],\
+             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5))
+            '''
             
         # Make limits on data range.
         self.thegraph_sunalt.set_xlim([\
@@ -556,20 +589,35 @@ class Plot(object):
         '''
 
     def plot_data_time(self,Data,Ephem):
-
-        # Plot the data
+        '''
+        Plot NSB data vs Sun altitude
+        '''
+        
+        # Plot the data (NSB and temperature)
         TheData = Data.premidnight
         if np.size(TheData.filter)>0:
             self.thegraph_time.plot(\
              np.array(TheData.localdates)[TheData.filter],\
              np.array(TheData.night_sbs)[TheData.filter],color='g')
+            '''
+            self.thegraph_time_temp.plot(\
+             np.array(TheData.localdates)[TheData.filter],\
+             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5)
+            '''
+
 
         TheData = Data.aftermidnight
         if np.size(TheData.filter)>0:
             self.thegraph_time.plot(\
              np.array(TheData.localdates)[TheData.filter],\
              np.array(TheData.night_sbs)[TheData.filter],color='b')
+            '''
+            self.thegraph_time_temp.plot(\
+             np.array(TheData.localdates)[TheData.filter],\
+             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5)
+            '''
 
+        
         # Vertical line to mark 0h
         self.thegraph_time.axvline(\
          Data.Night+datetime.timedelta(days=1),color='k', alpha=0.5,clip_on=True)
@@ -749,21 +797,15 @@ def make_plot(input_filename=None,send_emails=False,write_stats=False):
     if write_stats==True:
         save_stats_to_file(NSBData.Night,NSBData,Ephem)
 
-    # Plot the data
+    # Plot the data and save the resulting figure
     NSBPlot = Plot(NSBData,Ephem)
 
-    # Save the plot
-    #output_filenames = [\
-    #    config.current_data_directory+'/'+config._device_shorttype+'_'+config._observatory_name+'.png',\
-    #    config.daily_graph_directory+'/'+config._device_shorttype+'_'+config._observatory_name+\
-    #     '_'+str(NSBData.Night)+'.png'\
-    #    ]
-
     output_filenames = [\
-        config.current_data_directory+'/'+config._device_shorttype+'_'+config._observatory_name+'.png',\
-        config.daily_graph_directory+'/'+str(NSBData.Night).replace('-','')+'_120000_'+\
-         config._device_shorttype+'-'+config._observatory_name+'.png'
-        ]
+        str("%s/%s_%s.png" %(config.current_data_directory,config._device_shorttype,config._observatory_name)),\
+        str("%s/%s_120000_%s-%s.png" \
+            %(config.daily_graph_directory, str(NSBData.Night).replace('-',''),\
+              config._device_shorttype, config._observatory_name))\
+    ]
 
     for output_filename in output_filenames:
         NSBPlot.save_figure(output_filename)
