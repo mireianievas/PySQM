@@ -28,7 +28,8 @@ import ephem
 import datetime
 
 # Read the config variables from config.py
-#import config
+import pysqm.settings as settings
+config = settings.GlobalConfig.config
 
 def define_ephem_observatory():
     ''' Define the Observatory in Pyephem '''

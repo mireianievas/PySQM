@@ -64,7 +64,7 @@ class ConfigFile:
         # Get the absolute path
         abspath = os.path.abspath(path)
         # Is a dir? Then add config.py (default filename)
-        if os.path.isfile(abspath):
+        if os.path.isdir(abspath):
             abspath += "/config.py"
         # split directory and filename
         directory = os.path.dirname(abspath)
