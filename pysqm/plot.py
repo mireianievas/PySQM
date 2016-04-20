@@ -235,7 +235,7 @@ class SQMData(object):
 
             # Check that datetimes are corrent
             calc_localdatetime = utcdatetime+timedelta(hours=config._local_timezone)
-            assert(calc_localdatetime == localdatetime)
+            if (calc_localdatetime != localdatetime): return 1
 
             # Set the datetime for astronomical calculations.
             Ephem.Observatory.date = ephem.date(utcdatetime)
@@ -251,6 +251,10 @@ class SQMData(object):
             frequency   = float(line[4])
             # Night sky background
             night_sb    = float(line[5])
+            try: config._plot_corrected_nsb
+            except NameError: config._plot_corrected_nsb=False
+            if (config._plot_corrected_nsb):
+                night_sb += _plot_corrected_nsb*_offset_calibration
             # Define sun in pyephem
             Sun = ephem.Sun(Ephem.Observatory)
 
@@ -365,12 +369,13 @@ class Plot(object):
     def __init__(self,Data,Ephem):
         plt.hold(True)
         Data = self.prepare_plot(Data,Ephem)
-        
-        try:
-            assert(config.full_plot is True)
+
+        try: config.full_plot
+        except: config.full_plot = False
+        if (config.full_plot):
             self.make_figure(thegraph_altsun=True,thegraph_time=True)
             self.plot_data_sunalt(Data,Ephem)
-        except:
+        else:
             self.make_figure(thegraph_altsun=False,thegraph_time=True)
 
         self.plot_data_time(Data,Ephem)
@@ -422,14 +427,14 @@ class Plot(object):
             self.thegraph_sunalt = self.thefigure.add_subplot(1,1,1)
         else:
             self.thegraph_sunalt = self.thefigure.add_subplot(2,1,twinplot)
-        
+
 
         self.thegraph_sunalt.set_title(\
          'Sky Brightness ('+config._device_shorttype+'-'+\
          config._observatory_name+')\n',fontsize='x-large')
         self.thegraph_sunalt.set_xlabel('Solar altitude (deg)',fontsize='large')
         self.thegraph_sunalt.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
-        
+
         # Auxiliary plot (Temperature)
         '''
         self.thegraph_sunalt_temp = self.thegraph_sunalt.twinx()
@@ -470,7 +475,7 @@ class Plot(object):
         # fontsize='x-large')
         self.thegraph_time.set_xlabel('Time (UTC'+UTC_offset_label+')',fontsize='large')
         self.thegraph_time.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
-        
+
         # Auxiliary plot (Temperature)
         '''
         self.thegraph_time_temp = self.thegraph_time.twinx()
@@ -518,10 +523,9 @@ class Plot(object):
         is used
         '''
 
-        try:
-            assert(np.size(Data.Night)==1)
-        except:
-            print('Warning, more than 1 night in the data file. Please check it! %d' %np.size(Data.Night))
+        if(len(Data.Night)!=1):
+            print('Warning, more than 1 night in the data file. '+\
+                  'Please check it! %d' %np.size(Data.Night))
 
         # Mean datetime
         dts       = Data.all_night_dt
@@ -561,7 +565,7 @@ class Plot(object):
              np.array(TheData.sun_altitude)[TheData.filter],\
              np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5))
             '''
-            
+
         # Make limits on data range.
         self.thegraph_sunalt.set_xlim([\
          config.limits_sunalt[0]*np.pi/180.,\
@@ -593,7 +597,7 @@ class Plot(object):
         '''
         Plot NSB data vs Sun altitude
         '''
-        
+
         # Plot the data (NSB and temperature)
         TheData = Data.premidnight
         if np.size(TheData.filter)>0:
@@ -618,7 +622,7 @@ class Plot(object):
              np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5)
             '''
 
-        
+
         # Vertical line to mark 0h
         self.thegraph_time.axvline(\
          Data.Night+datetime.timedelta(days=1),color='k', alpha=0.5,clip_on=True)
@@ -656,13 +660,13 @@ class Plot(object):
          config._device_shorttype+'-'+config._observatory_name+' '*5+'Serial #'+str(Data.serial_number),\
          color='0.25',fontsize='small',fontname='monospace',\
          transform = self.thegraph_time.transAxes)
-       
+
         if np.size(Data.Night)==1:
             self.thegraph_time.text(0.75,1.015,'Moon: %d%s (%d%s)' \
              %(Ephem.moon_phase, "%", Ephem.moon_maxelev*180./np.pi,"$^\mathbf{o}$"),\
              color='black',fontsize='small',fontname='monospace',\
              transform = self.thegraph_time.transAxes)
-        
+
     def save_figure(self,output_filename):
         self.thefigure.savefig(output_filename, bbox_inches='tight',dpi=150)
 

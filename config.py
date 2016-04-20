@@ -75,12 +75,19 @@ TimeZone of the site and the computer
 
 # The real timezone of the site (without daylight saving)
 _local_timezone     = +1
-# The computer timezone.
-# magnitude = read_magnitude + offset
-_offset_calibration = -0.11
 # Reboot if we loose connection
 _reboot_on_connlost = False
 
+'''
+------------------
+Device calibration
+------------------
+'''
+
+# magnitude = read_magnitude + offset
+_offset_calibration  = -0.11
+# Correct the offset in the plot?
+_plot_corrected_data = False 
 
 '''
 ---------------------------------------

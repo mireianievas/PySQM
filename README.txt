@@ -89,13 +89,23 @@ Reinstalling the application may fix this problem.  Aborted (core dumped)
 
 In order to avoid this problem, you need to create (or modify if the file exists) in your HOME directory the following file: 
 
+<<<<<<< HEAD
 .config/matplotlib/matplotlibrc
+=======
+~/.config/matplotlib/matplotlibrc
+>>>>>>> 81ee7f842edba7b514ff6b204db231978fb1350c
 
 You just need to set the matplotlib backend to Agg:
 backend : Agg
 
 Save the changes and exit. Now, PySQM should make the plots without issues. You may need to restart PySQM to apply the changes.
 
+<<<<<<< HEAD
+=======
+Path to EXE files (windows only):
+https://www.dropbox.com/s/xlbr6ktk8spjsse/PySQM.exe?dl=0
+
+>>>>>>> 81ee7f842edba7b514ff6b204db231978fb1350c
 
 CHANGELOG
 =========
