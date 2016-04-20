@@ -252,9 +252,9 @@ class SQMData(object):
             # Night sky background
             night_sb    = float(line[5])
             try: config._plot_corrected_nsb
-            except AttributeError: config._plot_corrected_nsb=False
-            if (config._plot_corrected_nsb):
-                night_sb += config._plot_corrected_nsb*config._offset_calibration
+            except AttributeError: config._plot_corrected_data=False
+            if (config._plot_corrected_data):
+                night_sb += config._plot_corrected_data*config._offset_calibration
             # Define sun in pyephem
             Sun = ephem.Sun(Ephem.Observatory)
 
