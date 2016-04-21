@@ -27,15 +27,16 @@ import os,sys
 
 
 class ArgParser:
-    def __init__(self):
-        self.parse_arguments()
+    def __init__(self,inputfile=False):
+        self.parse_arguments(inputfile)
 
-    def parse_arguments(self):
+    def parse_arguments(self,inputfile):
         import argparse
         # Return config filename
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-c', '--config', default="config.py")
-        self.parser.add_argument('-i', '--input', default=None)
+        if (inputfile):
+            self.parser.add_argument('-i', '--input', default=None)
         args = self.parser.parse_args()
         vars(self).update(args.__dict__)
 

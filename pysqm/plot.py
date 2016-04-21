@@ -829,7 +829,7 @@ The following code allows to execute plot.py as a standalone program.
 if __name__ == '__main__':
     # Exec the main program
     import pysqm.settings as settings
-    InputArguments = settings.ArgParser()
+    InputArguments = settings.ArgParser(inputfile=True)
     configfilename = InputArguments.config
     try:
         settings.GlobalConfig.read_config_file(configfilename)
