@@ -13,6 +13,7 @@ or (at your option) any later version. See the file LICENSE.txt for details.
 This software has been developed by Miguel Nievas <miguelnievas@ucm.es> with
 the invaluable help of:
 
+ - Sergio Pascual (UCM)
  - Jaime Zamorano (UCM)
  - Laura Barbas (OAN)
  - Pablo de Vicente (OAN)
