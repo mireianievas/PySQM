@@ -34,14 +34,14 @@ Read input arguments (if any)
 '''
 import pysqm.settings as settings
 InputArguments = settings.ArgParser()
-configfilename = InputArguments.get_config_filename()
+configfilename = InputArguments.config
 
 # Load config contents into GlobalConfig
 settings.GlobalConfig.read_config_file(configfilename)
 
 # Get the actual config
 config = settings.GlobalConfig.config
-    
+
 ### Load now the rest of the modules
 from pysqm.read import *
 import pysqm.plot

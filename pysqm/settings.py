@@ -33,20 +33,14 @@ class ArgParser:
     def parse_arguments(self):
         import argparse
         # Return config filename
-        parser = argparse.ArgumentParser()
-        parser.add_argument('-c', '--config')
-        self.args = parser.parse_args()
-    
-    def get_config_filename(self):
-        try:
-            assert(self.args.config!=None)
-        except:
-            configfilename = "config.py"
-        else:
-            configfilename = self.args.config
-        print("Using configuration file: %s." %configfilename)
-        return(configfilename)
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-c', '--config', default="config.py")
+        self.parser.add_argument('-i', '--input', default=None)
+        args = self.parser.parse_args()
+        vars(self).update(args.__dict__)
 
+    def print_help(self):
+        self.parser.print_help()
 
 
 class ConfigFile:
@@ -59,7 +53,8 @@ class ConfigFile:
         # - relative path (exc. filename)
         # - shortcouts like ~ . etc
         self.path = path
-    
+        self.config = None
+
     def read_config_file(self,path):
         # Get the absolute path
         abspath = os.path.abspath(path)

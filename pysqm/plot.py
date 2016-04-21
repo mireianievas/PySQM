@@ -31,25 +31,26 @@ matplotlib.use('Agg')
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime,date,timedelta
-
-from pysqm.common import *
+from datetime import datetime,timedelta
 
 
-'''
-Read configuration
-'''
-import pysqm.settings as settings
-config = settings.GlobalConfig.config
+# Read configuration
 
+if __name__ != '__main__':
+    import pysqm.settings as settings
+    config = settings.GlobalConfig.config
 
-for directory in [config.monthly_data_directory,config.daily_graph_directory,config.current_graph_directory]:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    for directory in [\
+        config.monthly_data_directory,\
+        config.daily_graph_directory,\
+        config.current_graph_directory]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
 
 class Ephemerids(object):
     def __init__(self):
+        from pysqm.common import define_ephem_observatory
         self.Observatory = define_ephem_observatory()
 
     def ephem_date_to_datetime(self,ephem_date):
@@ -58,18 +59,18 @@ class Ephemerids(object):
         date_ = date_.split('/')
         time_ = time_.split(':')
 
-        return(datetime.datetime(\
+        return(datetime(\
             int(date_[0]),int(date_[1]),int(date_[2]),\
             int(time_[0]),int(time_[1]),int(time_[2])))
 
     def end_of_the_day(self,thedate):
+        import datetime
         newdate = thedate+datetime.timedelta(days=1)
         newdatetime = datetime.datetime(\
             newdate.year,\
             newdate.month,\
             newdate.day,0,0,0)
         newdatetime = newdatetime-datetime.timedelta(hours=config._local_timezone)
-
         return(newdatetime)
 
 
@@ -163,6 +164,7 @@ class SQMData(object):
         self.check_number_of_nights()
 
     def extract_metadata(self,raw_data_and_metadata):
+        from pysqm.common import format_value
         metadata_lines = [\
          line for line in raw_data_and_metadata \
          if format_value(line)[0]=='#']
@@ -174,6 +176,7 @@ class SQMData(object):
         self.serial_number = format_value(serial_number_line.split(':')[-1])
 
     def check_validdata(self,data_line):
+        from pysqm.common import format_value
         try:
             assert(format_value(data_line)[0]!='#')
             assert(format_value(data_line)[0]!='')
@@ -219,9 +222,10 @@ class SQMData(object):
             except:
                 second = 0
 
-        return(datetime.datetime(year,month,day,hour,minute,second))
+        return(datetime(year,month,day,hour,minute,second))
 
     def process_rawdata(self,Ephem):
+        from pysqm.common import format_value_list
         '''
         Get the important information from the raw_data
         and put it in a more useful format
@@ -392,17 +396,17 @@ class Plot(object):
             # We need to divide the plotting in two phases
             #(pre-midnight and after-midnight)
             self.thegraph_time.axvspan(\
-             Ephem.moon_prev_rise+datetime.timedelta(hours=config._local_timezone),\
-             Ephem.moon_next_set+datetime.timedelta(hours=config._local_timezone),\
+             Ephem.moon_prev_rise+timedelta(hours=config._local_timezone),\
+             Ephem.moon_next_set+timedelta(hours=config._local_timezone),\
               edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
         else:
             self.thegraph_time.axvspan(\
-             Ephem.moon_prev_rise+datetime.timedelta(hours=config._local_timezone),\
-             Ephem.moon_prev_set+datetime.timedelta(hours=config._local_timezone),\
+             Ephem.moon_prev_rise+timedelta(hours=config._local_timezone),\
+             Ephem.moon_prev_set+timedelta(hours=config._local_timezone),\
              edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
             self.thegraph_time.axvspan(\
-             Ephem.moon_next_rise+datetime.timedelta(hours=config._local_timezone),\
-             Ephem.moon_next_set+datetime.timedelta(hours=config._local_timezone),\
+             Ephem.moon_next_rise+timedelta(hours=config._local_timezone),\
+             Ephem.moon_next_set+timedelta(hours=config._local_timezone),\
              edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
 
     def plot_twilight(self,Ephem):
@@ -410,10 +414,10 @@ class Plot(object):
         Plot vertical lines on the astronomical twilights
         '''
         self.thegraph_time.axvline(\
-         Ephem.twilight_prev_set+datetime.timedelta(hours=config._local_timezone),\
+         Ephem.twilight_prev_set+timedelta(hours=config._local_timezone),\
          color='k', ls='--', lw=2, alpha=0.5, clip_on=True)
         self.thegraph_time.axvline(\
-         Ephem.twilight_next_rise+datetime.timedelta(hours=config._local_timezone),\
+         Ephem.twilight_next_rise+timedelta(hours=config._local_timezone),\
          color='k', ls='--', lw=2, alpha=0.5, clip_on=True)
 
     def make_subplot_sunalt(self,twinplot=0):
@@ -523,19 +527,15 @@ class Plot(object):
         is used
         '''
 
-        if(len(Data.Night)!=1):
-            print('Warning, more than 1 night in the data file. '+\
-                  'Please check it! %d' %np.size(Data.Night))
-
         # Mean datetime
         dts       = Data.all_night_dt
         mean_dt   = dts[0]+np.sum(np.array(dts)-dts[0])/np.size(dts)
-        sel_night = (mean_dt - datetime.timedelta(hours=12)).date()
+        sel_night = (mean_dt - timedelta(hours=12)).date()
 
         Data.premidnight.filter = np.array(\
          [Date.date()==sel_night for Date in Data.premidnight.localdates])
         Data.aftermidnight.filter = np.array(\
-         [(Date-datetime.timedelta(days=1)).date()==sel_night\
+         [(Date-timedelta(days=1)).date()==sel_night\
            for Date in Data.aftermidnight.localdates])
 
         return(Data)
@@ -622,29 +622,28 @@ class Plot(object):
              np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5)
             '''
 
-
         # Vertical line to mark 0h
         self.thegraph_time.axvline(\
-         Data.Night+datetime.timedelta(days=1),color='k', alpha=0.5,clip_on=True)
+         Data.Night+timedelta(days=1),color='k', alpha=0.5,clip_on=True)
 
         # Set the xlimit for the time plot.
         if np.size(Data.premidnight.filter)>0:
             begin_plot_dt = Data.premidnight.localdates[-1]
-            begin_plot_dt = datetime.datetime(\
+            begin_plot_dt = datetime(\
              begin_plot_dt.year,\
              begin_plot_dt.month,\
              begin_plot_dt.day,\
              config.limits_time[0],0,0)
-            end_plot_dt = begin_plot_dt+datetime.timedelta(\
+            end_plot_dt = begin_plot_dt+timedelta(\
              hours=24+config.limits_time[1]-config.limits_time[0])
         elif np.size(Data.aftermidnight.filter)>0:
             end_plot_dt = Data.aftermidnight.localdates[-1]
-            end_plot_dt = datetime.datetime(\
+            end_plot_dt = datetime(\
              end_plot_dt.year,\
              end_plot_dt.month,\
              end_plot_dt.day,\
              config.limits_time[1],0,0)
-            begin_plot_dt = end_plot_dt-datetime.timedelta(\
+            begin_plot_dt = end_plot_dt-timedelta(\
              hours=24+config.limits_time[1]-config.limits_time[0])
         else:
             print('Warning: Cannot calculate plot limits')
@@ -806,7 +805,8 @@ def make_plot(input_filename=None,send_emails=False,write_stats=False):
     NSBPlot = Plot(NSBData,Ephem)
 
     output_filenames = [\
-        str("%s/%s_%s.png" %(config.current_data_directory,config._device_shorttype,config._observatory_name)),\
+        str("%s/%s_%s.png" %(config.current_data_directory,\
+            config._device_shorttype,config._observatory_name)),\
         str("%s/%s_120000_%s-%s.png" \
             %(config.daily_graph_directory, str(NSBData.Night).replace('-',''),\
               config._device_shorttype, config._observatory_name))\
@@ -823,20 +823,23 @@ def make_plot(input_filename=None,send_emails=False,write_stats=False):
         night_label = str(datetime.date.today()-timedelta(days=1))
         pysqm.email.send_emails(night_label=night_label,Stat=NSBData.Statistics)
 
-
 '''
 The following code allows to execute plot.py as a standalone program.
 '''
-
 if __name__ == '__main__':
     # Exec the main program
     import pysqm.settings as settings
     InputArguments = settings.ArgParser()
-    configfilename = InputArguments.get_config_filename()
-    settings.GlobalConfig.read_config_file(configfilename)
-    config = settings.GlobalConfig.config
-    make_plot(input_filename=sys.argv[1],send_emails=False,write_stats=False)
-
+    configfilename = InputArguments.config
+    try:
+        settings.GlobalConfig.read_config_file(configfilename)
+        config = settings.GlobalConfig.config
+        make_plot(input_filename=InputArguments.input,\
+          send_emails=False,write_stats=False)
+    except:
+        raise
+        print("Error: The arguments you provided are invalid")
+        InputArguments.print_help()
 
 
 
