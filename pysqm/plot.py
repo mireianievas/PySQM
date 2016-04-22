@@ -64,13 +64,12 @@ class Ephemerids(object):
             int(time_[0]),int(time_[1]),int(time_[2])))
 
     def end_of_the_day(self,thedate):
-        import datetime
-        newdate = thedate+datetime.timedelta(days=1)
-        newdatetime = datetime.datetime(\
+        newdate = thedate+timedelta(days=1)
+        newdatetime = datetime(\
             newdate.year,\
             newdate.month,\
             newdate.day,0,0,0)
-        newdatetime = newdatetime-datetime.timedelta(hours=config._local_timezone)
+        newdatetime = newdatetime-timedelta(hours=config._local_timezone)
         return(newdatetime)
 
 
@@ -94,7 +93,7 @@ class Ephemerids(object):
             # The error should be small.
 
             # Set the previous day date
-            thedate2 = thedate - datetime.timedelta(days=1)
+            thedate2 = thedate - timedelta(days=1)
             self.Observatory.date = str(self.end_of_the_day(thedate2))
             Moon2 = ephem.Moon()
             Moon2.compute(self.Observatory)
@@ -305,7 +304,7 @@ class SQMData(object):
             self.Night = np.unique([DT.date() \
              for DT in self.premidnight.localdates])[0]
         elif np.size(self.aftermidnight.localdates)>0:
-            self.Night = np.unique([(DT-datetime.timedelta(hours=12)).date() \
+            self.Night = np.unique([(DT-timedelta(hours=12)).date() \
              for DT in self.aftermidnight.localdates])[0]
         else:
             print('Warning, No Night detected.')

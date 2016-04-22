@@ -87,7 +87,7 @@ Device calibration
 # magnitude = read_magnitude + offset
 _offset_calibration  = -0.11
 # Correct the offset in the plot?
-_plot_corrected_data = False 
+_plot_corrected_data = False
 
 '''
 ---------------------------------------
@@ -98,9 +98,9 @@ System PATHs to save the data and plots
 # Monthly (permanent) data
 monthly_data_directory = "/Path/To/SQM/Data"
 # Daily (permanent) data
-daily_data_directory   = monthly_data_directory+"/datos_diarios/"
+daily_data_directory   = monthly_data_directory+"/daily_data/"
 # Daily (permanent) graph
-daily_graph_directory = monthly_data_directory+"/graficos_diarios/"
+daily_graph_directory = monthly_data_directory+"/daily_plots/"
 # Current data, deleted each day.
 current_data_directory = monthly_data_directory
 # Current graph, deleted each day.
