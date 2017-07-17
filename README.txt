@@ -10,7 +10,7 @@ NSBM Community Standards for Reporting Skyglow Observations' format
 PySQM is distributed under GNU GPL, either version 3 of the License, 
 or (at your option) any later version. See the file LICENSE.txt for details.
 
-This software has been developed by Miguel Nievas <miguelnievas@ucm.es> with
+This software has been developed by Mireia Nievas <mnievas@ucm.es> with
 the invaluable help of:
 
  - Sergio Pascual (UCM)

@@ -4,8 +4,8 @@ from distutils.core import setup
 
 setup(name='pysqm',
       version='3.1',
-      author='Miguel Nievas',
-      author_email='miguelnievas@ucm.es',
+      author='Mireia Nievas',
+      author_email='mnievas@ucm.es',
       url='http://guaix.fis.ucm.es/hg/pysqm/',
       license='GPLv3',
       description='SQM reading and plotting software',

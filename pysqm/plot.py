@@ -4,7 +4,7 @@
 PySQM plotting program
 ____________________________
 
-Copyright (c) Miguel Nievas <miguelnievas[at]ucm[dot]es>
+Copyright (c) Mireia Nievas <mnievas[at]ucm[dot]es>
 
 This file is part of PySQM.
 
