@@ -370,7 +370,7 @@ class SQMData(object):
 
 class Plot(object):
     def __init__(self,Data,Ephem):
-        plt.hold(True)
+        # plt.hold(True) ## deprecated, True by default.
         Data = self.prepare_plot(Data,Ephem)
 
         try: config.full_plot
@@ -385,7 +385,9 @@ class Plot(object):
 
         self.plot_moonphase(Ephem)
         self.plot_twilight(Ephem)
-        plt.hold(False)
+        # plt.hold(False) ## deprecated, clear the figure or axes by default
+        plt.clf()
+        #plt.cla() 
 
     def plot_moonphase(self,Ephem):
         '''
