@@ -37,70 +37,42 @@ ____________________________
 SITE location
 -------------
 '''
-_observatory_name = 'OBS_NAME'
-_observatory_latitude  = 0
-_observatory_longitude = 0
-_observatory_altitude  = 0
-# If Sun is below this altitude, the program will take data
-_observatory_horizon   = 10
 
-# Device (short)name for filenames
-_device_shorttype = 'SQM'
-# Device type. SQM_LE / SQM_LU
-_device_type = 'SQM_LE'
-# Long Device name. Should include the name of the observatory.
-_device_id = _device_type + '-' + _observatory_name
-# Device location in the world
-_device_locationname = 'Locality/State/Country - Observatory Name'
-# Data supplier (contact)
-_data_supplier = 'Supplier Name / Institution'
-# Default Adress of the device
-# Can be either an IP Adress (p.e. 169.254.1.13) in SQM-LE or a COM port (p.e. COM13) in SQM-LU
-_device_addr = '169.254.1.13'
-# Take the mean of N measures to remove jitter
-_measures_to_promediate = 5
-# Delay between two measures. In seconds.
-_delay_between_measures = 5
-# Get N measures before writing on screen/file
-_cache_measures = 5
-# Call the plot function each N measures.
-_plot_each = 60
+_observatory_name = 'GURUGU'
+_observatory_latitude  = 40.447862
+_observatory_longitude = -3.364992
+_observatory_altitude  = 680
+_observatory_horizon   = 10     # If Sun is below this altitude, the program will take data
 
+_device_shorttype = 'SQM' # Device STR in the file
+_device_type = 'SQM_LU'   # Device type in the Header
+_device_id = _device_type + '-' + _observatory_name # Long Device lame
+_device_locationname = 'Villalbilla/Spain - Observatorio GURUGU'         # Device location in the world
+_data_supplier = 'Mireia Nievas / Universidad Complutense de Madrid'  # Data supplier (contact)
+_device_addr = '/dev/ttyUSB0'  # Default IP address of the ethernet device (if not automatically found)
+_measures_to_promediate = 5       # Take the mean of N measures
+_delay_between_measures = 20    # Delay between two measures. In seconds.
+_cache_measures = 5             # Get X measures before writing on screen/file
+_plot_each = 60                 # Call the plot function each X measures.
 
-'''
--------------------------------------
-TimeZone of the site and the computer
--------------------------------------
-'''
+_use_mysql = False        # Set to True if you want to store data on a MySQL db.
+_mysql_host = None        # Host (ip:port / localhost) of the MySQL engine.
+_mysql_user = None        # User with write permission on the db.
+_mysql_pass = None        # Password for that user.
+_mysql_database = None    # Name of the database.
+_mysql_port = None        # Port of the MySQL server.
 
-# The real timezone of the site (without daylight saving)
-_local_timezone     = +1
-# Reboot if we loose connection
-_reboot_on_connlost = False
-
-'''
-------------------
-Device calibration
-------------------
-'''
-
-# magnitude = read_magnitude + offset
-_offset_calibration  = -0.11
-# Correct the offset in the plot?
-_plot_corrected_data = False
-
-'''
----------------------------------------
-System PATHs to save the data and plots
----------------------------------------
-'''
+_local_timezone     = +1     # UTC+1
+_computer_timezone  = +0     # UTC
+_offset_calibration = -0.11  # magnitude = read_magnitude + offset
+_reboot_on_connlost = False  # Reboot if we loose connection
 
 # Monthly (permanent) data
-monthly_data_directory = "/Path/To/SQM/Data"
+monthly_data_directory = "/tmp/sqm_gurugu/"
 # Daily (permanent) data
-daily_data_directory   = monthly_data_directory+"/daily_data/"
+daily_data_directory = monthly_data_directory+"/datos_diarios/"
 # Daily (permanent) graph
-daily_graph_directory = monthly_data_directory+"/daily_plots/"
+daily_graph_directory = monthly_data_directory+"/graficos_diarios/"
 # Current data, deleted each day.
 current_data_directory = monthly_data_directory
 # Current graph, deleted each day.
@@ -108,59 +80,27 @@ current_graph_directory = monthly_data_directory
 # Summary with statistics for the night
 summary_data_directory = monthly_data_directory
 
+
 '''
 ----------------------------
 PySQM data center (OPTIONAL)
 ----------------------------
 '''
 
-# Send the data to the data center (NOT available yet!)
+# Send the data to the data center
 _send_to_datacenter = False
 
-'''
----------------------------------
-MYSQL database options (OPTIONAL)
----------------------------------
-'''
-
-# Set to True if you want to store data on a MySQL db.
-_use_mysql = False
-# Host (ip:port / localhost) of the MySQL engine.
-_mysql_host = None
-# User with write permission on the db.
-_mysql_user = None
-# Password for that user.
-_mysql_pass = None
-# Name of the database.
-_mysql_database = None
-# Name of the database table
-_mysql_dbtable = None
-# Port of the MySQL server.
-_mysql_port = None
-
-
 
 '''
----------------
 Ploting options
----------------
 '''
-# Plot only date / full plot (datetime + sun alt)
-full_plot  = False
-# Limits in Y-axis of the plot (Night Sky Background)
-limits_nsb = [15,22]
-# Time (hours) for the beginning and the end of the session. (LOCALTIME)
-limits_time   = [17,9]
-# Limits in the Sun altitude for the plot. In degrees.
-limits_sunalt = [-90,5]
-
-
+full_plot = False
+limits_nsb = [16.5,20.0] # Limits in Y-axis
+limits_time   = [17,9] # Hours
+limits_sunalt = [-80,5] # Degrees
 
 '''
--------------
 Email options
--------------
 '''
-# Requires pysqm.email.py module. Not released yet!.
 _send_data_by_email = False
 

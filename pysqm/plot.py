@@ -33,7 +33,6 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime,timedelta
 
-
 # Read configuration
 
 if __name__ != '__main__':
@@ -291,7 +290,6 @@ class SQMData(object):
             self.all_night_sb.append(night_sb)
             self.all_night_temp.append(temperature)
 
-
     def check_number_of_nights(self):
         '''
         Check that the number of nights is exactly 1 and
@@ -327,6 +325,22 @@ class SQMData(object):
             array_fft[nterms:]=0
             filtered_array = np.fft.ifft(array_fft)
             return(filtered_array)
+    
+        def window_smooth(x,window_len=10,window='hanning'):
+            # http://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
+            if x.ndim != 1: raise ValueError, "smooth requires 1-d arrays"
+            if x.size < window_len: raise ValueError, "size(input) < window_size"
+            if window_len < 3: return x
+            if not window in ['flat','hanning','hamming','bartlett','blackman']:
+                raise ValueError, \
+                "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+            s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+            if window == 'flat': #moving average
+                w=np.ones(window_len,'d')
+            else:
+                w=eval('np.'+window+'(window_len)')
+            y=np.convolve(w/w.sum(),s,mode='valid')
+            return(y)
 
         astronomical_night_filter = (\
          (np.array(self.all_night_dt)>Ephem.twilight_prev_set)*\
@@ -352,16 +366,20 @@ class SQMData(object):
         Stat.std    = np.median(self.astronomical_night_sb)
         Stat.number = np.size(self.astronomical_night_sb)
         # Only the best 1/100th.
-        Stat.bests_number = int(1+Stat.number/50.)
+        Stat.bests_number = 1+Stat.number/25
         Stat.bests_mean   = np.mean(select_bests(self.astronomical_night_sb,Stat.bests_number))
         Stat.bests_median = np.median(select_bests(self.astronomical_night_sb,Stat.bests_number))
         Stat.bests_std    = np.std(select_bests(self.astronomical_night_sb,Stat.bests_number))
         Stat.bests_err    = Stat.bests_std*1./np.sqrt(Stat.bests_number)
 
-        Stat.model_nterm = Stat.bests_number
-        data_smooth = fourier_filter(self.astronomical_night_sb,nterms=Stat.model_nterm)
-        data_residuals = self.astronomical_night_sb-data_smooth
+        Stat.model_nterm = 1+Stat.number/25
+        #data_smooth = fourier_filter(self.astronomical_night_sb,nterms=Stat.model_nterm)
+        data_smooth = window_smooth(self.astronomical_night_sb,
+                window_len=Stat.model_nterm)
+        min_length = min(len(data_smooth),len(self.astronomical_night_sb))
+        data_residuals = self.astronomical_night_sb[:min_length]-data_smooth[:min_length]
         Stat.data_model_abs_meandiff = np.mean(np.abs(data_residuals))
+        Stat.data_model_sum_squareresiduals = np.sum(data_residuals**2)
 
         # Other interesting data
         Stat.min_temperature = np.min(self.astronomical_night_temp)
@@ -370,7 +388,7 @@ class SQMData(object):
 
 class Plot(object):
     def __init__(self,Data,Ephem):
-        # plt.hold(True) ## deprecated, True by default.
+        plt.clf() # plt.hold(True/False) is deprecated
         Data = self.prepare_plot(Data,Ephem)
 
         try: config.full_plot
@@ -385,9 +403,6 @@ class Plot(object):
 
         self.plot_moonphase(Ephem)
         self.plot_twilight(Ephem)
-        # plt.hold(False) ## deprecated, clear the figure or axes by default
-        plt.clf()
-        #plt.cla() 
 
     def plot_moonphase(self,Ephem):
         '''
@@ -399,16 +414,16 @@ class Plot(object):
             self.thegraph_time.axvspan(\
              Ephem.moon_prev_rise+timedelta(hours=config._local_timezone),\
              Ephem.moon_next_set+timedelta(hours=config._local_timezone),\
-              edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
+              edgecolor='#d62728',facecolor='#d62728', alpha=0.1,clip_on=True)
         else:
             self.thegraph_time.axvspan(\
              Ephem.moon_prev_rise+timedelta(hours=config._local_timezone),\
              Ephem.moon_prev_set+timedelta(hours=config._local_timezone),\
-             edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
+             edgecolor='#d62728',facecolor='#d62728', alpha=0.1,clip_on=True)
             self.thegraph_time.axvspan(\
              Ephem.moon_next_rise+timedelta(hours=config._local_timezone),\
              Ephem.moon_next_set+timedelta(hours=config._local_timezone),\
-             edgecolor='r',facecolor='r', alpha=0.1,clip_on=True)
+             edgecolor='#d62728',facecolor='#d62728', alpha=0.1,clip_on=True)
 
     def plot_twilight(self,Ephem):
         '''
@@ -416,10 +431,10 @@ class Plot(object):
         '''
         self.thegraph_time.axvline(\
          Ephem.twilight_prev_set+timedelta(hours=config._local_timezone),\
-         color='k', ls='--', lw=2, alpha=0.5, clip_on=True)
+         color='black', ls='dashdot', lw=1, alpha=0.75, clip_on=True)
         self.thegraph_time.axvline(\
          Ephem.twilight_next_rise+timedelta(hours=config._local_timezone),\
-         color='k', ls='--', lw=2, alpha=0.5, clip_on=True)
+         color='black', ls='dashdot', lw=1, alpha=0.75, clip_on=True)
 
     def make_subplot_sunalt(self,twinplot=0):
         '''
@@ -455,8 +470,10 @@ class Plot(object):
         self.thegraph_sunalt.set_xticks(tick_marks)
         self.thegraph_sunalt.set_xticklabels(tick_labels)
         self.thegraph_sunalt.yaxis.set_minor_locator(ticker.MultipleLocator(0.5))
-        self.thegraph_sunalt.grid(True,which='major')
-        self.thegraph_sunalt.grid(True,which='minor')
+        self.thegraph_sunalt.grid(True,which='major',
+                alpha=0.2,color='k',ls='',lw=0.5)
+        self.thegraph_sunalt.grid(True,which='minor',
+                alpha=0.2,color='k',ls='solid',lw=0.5)
 
     def make_subplot_time(self,twinplot=0):
         '''
@@ -491,7 +508,7 @@ class Plot(object):
         # format the ticks (vs time)
         daylocator    = mdates.HourLocator(byhour=[4,20])
         hourlocator   = mdates.HourLocator()
-        dayFmt        = mdates.DateFormatter('\n%d %b %Y')
+        dayFmt        = mdates.DateFormatter('%d %b %Y')
         hourFmt       = mdates.DateFormatter('%H')
 
         self.thegraph_time.xaxis.set_major_locator(daylocator)
@@ -500,9 +517,12 @@ class Plot(object):
         self.thegraph_time.xaxis.set_minor_formatter(hourFmt)
         self.thegraph_time.yaxis.set_minor_locator(ticker.MultipleLocator(0.5))
 
+        self.thegraph_time.xaxis.set_tick_params(which='major', pad=15)
         self.thegraph_time.format_xdata = mdates.DateFormatter('%Y-%m-%d_%H:%M:%S')
-        self.thegraph_time.grid(True,which='major',ls='')
-        self.thegraph_time.grid(True,which='minor')
+        self.thegraph_time.grid(True,which='major',
+                alpha=0.2,color='k',ls='',lw=0.5)
+        self.thegraph_time.grid(True,which='minor',
+                alpha=0.2,color='k',ls='solid',lw=0.5)
 
     def make_figure(self,thegraph_altsun=True,thegraph_time=True):
         # Make the figure and the graph
@@ -550,21 +570,21 @@ class Plot(object):
         if np.size(TheData.filter)>0:
             self.thegraph_sunalt.plot(\
              np.array(TheData.sun_altitude)[TheData.filter],\
-             np.array(TheData.night_sbs)[TheData.filter],color='g')
+             np.array(TheData.night_sbs)[TheData.filter],color='#2ca02c')
             '''
             self.thegraph_sunalt.plot(\
              np.array(TheData.sun_altitude)[TheData.filter],\
-             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5))
+             np.array(TheData.temperatures)[TheData.filter],color='#9467bd',alpha=0.5))
             '''
         TheData = Data.aftermidnight
         if np.size(TheData.filter)>0:
             self.thegraph_sunalt.plot(\
              np.array(TheData.sun_altitude)[TheData.filter],\
-             np.array(TheData.night_sbs)[TheData.filter],color='b')
+             np.array(TheData.night_sbs)[TheData.filter],color='#1f77b4')
             '''
             self.thegraph_sunalt.plot(\
              np.array(TheData.sun_altitude)[TheData.filter],\
-             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5))
+             np.array(TheData.temperatures)[TheData.filter],color='#9467bd',alpha=0.5))
             '''
 
         # Make limits on data range.
@@ -582,15 +602,15 @@ class Plot(object):
          transform = self.thegraph_sunalt.transAxes)
 
         self.thegraph_sunalt.text(0.75,0.92,'PM: '+premidnight_label,\
-         color='g',fontsize='small',transform = self.thegraph_sunalt.transAxes)
+         color='#2ca02c',fontsize='small',transform = self.thegraph_sunalt.transAxes)
         self.thegraph_sunalt.text(0.75,0.84,'AM: '+aftermidnight_label,\
-         color='b',fontsize='small',transform = self.thegraph_sunalt.transAxes)
+         color='#1f77b4',fontsize='small',transform = self.thegraph_sunalt.transAxes)
 
         '''
         if np.size(Data.Night)==1:
             self.thegraph_sunalt.text(0.75,1.015,'Moon: %d%s (%d%s)' \
              %(Ephem.moon_phase, "%", Ephem.moon_maxelev*180./np.pi,"$^\mathbf{o}$"),\
-             color='r',fontsize='small',fontname='monospace',\
+             color='#d62728',fontsize='small',fontname='monospace',\
              transform = self.thegraph_sunalt.transAxes)
         '''
 
@@ -604,11 +624,11 @@ class Plot(object):
         if np.size(TheData.filter)>0:
             self.thegraph_time.plot(\
              np.array(TheData.localdates)[TheData.filter],\
-             np.array(TheData.night_sbs)[TheData.filter],color='g')
+             np.array(TheData.night_sbs)[TheData.filter],color='#2ca02c')
             '''
             self.thegraph_time_temp.plot(\
              np.array(TheData.localdates)[TheData.filter],\
-             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5)
+             np.array(TheData.temperatures)[TheData.filter],color='#9467bd',alpha=0.5)
             '''
 
 
@@ -616,16 +636,17 @@ class Plot(object):
         if np.size(TheData.filter)>0:
             self.thegraph_time.plot(\
              np.array(TheData.localdates)[TheData.filter],\
-             np.array(TheData.night_sbs)[TheData.filter],color='b')
+             np.array(TheData.night_sbs)[TheData.filter],color='#1f77b4')
             '''
             self.thegraph_time_temp.plot(\
              np.array(TheData.localdates)[TheData.filter],\
-             np.array(TheData.temperatures)[TheData.filter],color='purple',alpha=0.5)
+             np.array(TheData.temperatures)[TheData.filter],color='#9467bd',alpha=0.5)
             '''
 
         # Vertical line to mark 0h
         self.thegraph_time.axvline(\
-         Data.Night+timedelta(days=1),color='k', alpha=0.5,clip_on=True)
+         Data.Night+timedelta(days=1),
+         color='black', alpha=0.75,lw=1,ls='solid',clip_on=True)
 
         # Set the xlimit for the time plot.
         if np.size(Data.premidnight.filter)>0:
@@ -678,6 +699,7 @@ class Plot(object):
 
 
 def save_stats_to_file(Night,NSBData,Ephem):
+    from pysqm.common import set_decimals
     '''
     Save statistics to file
     '''
@@ -692,10 +714,11 @@ def save_stats_to_file(Night,NSBData,Ephem):
      '# Col 3: Number of Best NSB measures\n'+\
      '# Col 4: Median of best N NSBs (mag/arcsec2)\n'+\
      '# Col 5: Err in the median of best N NSBs (mag/arcsec2)\n'+\
-     '# Col 6: Number of terms of the low-freq fourier model\n'+\
+     '# Col 6: Window size for the smoothing function\n'+\
      '# Col 7: Mean of Abs diff of NSBs data - fourier model (mag/arcsec2)\n'+\
      '# Col 8: Min Temp (C) between astronomical twilights\n'+\
      '# Col 9: Max Temp (C) between astronomical twilights\n\n'
+     #'# Col 6: Number of terms of the low-freq fourier model\n'+\
 
     formatted_data = \
         str(Night)+';'+\
@@ -704,7 +727,7 @@ def save_stats_to_file(Night,NSBData,Ephem):
         set_decimals(Stat.bests_median,4)+';'+\
         set_decimals(Stat.bests_err,4)+';'+\
         str(Stat.model_nterm)+';'+\
-        set_decimals(Stat.data_model_abs_meandiff,3)+';'+\
+        set_decimals(Stat.data_model_abs_meandiff,4)+';'+\
         set_decimals(Stat.min_temperature,1)+';'+\
         set_decimals(Stat.max_temperature,1)+\
         '\n'
@@ -779,7 +802,7 @@ def make_plot(input_filename=None,send_emails=False,write_stats=False):
      - Create the plot
     '''
 
-    print('Ploting photometer data ...')
+    print('Plotting photometer data ...')
 
     if (input_filename is None):
         input_filename  = config.current_data_directory+\
@@ -836,7 +859,7 @@ if __name__ == '__main__':
         settings.GlobalConfig.read_config_file(configfilename)
         config = settings.GlobalConfig.config
         make_plot(input_filename=InputArguments.input,\
-          send_emails=False,write_stats=False)
+          send_emails=False,write_stats=True)
     except:
         raise
         print("Error: The arguments you provided are invalid")
