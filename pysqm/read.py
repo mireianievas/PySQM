@@ -94,7 +94,7 @@ def filtered_mean(array,sigma=3):
 
     # Max discrepancy we allow.
     fixed_max_dev  = 0.2*data_median
-    clip_deviation = np.min([fixed_max_dev,data_std*sigma])
+    clip_deviation = np.min([fixed_max_dev,data_std*sigma+0.1])
 
     # Create the filter (10% flux + variable factor)
     filter_values_ok = np.abs(array-data_median)<=clip_deviation
