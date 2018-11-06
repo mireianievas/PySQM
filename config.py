@@ -60,6 +60,7 @@ _mysql_host = None        # Host (ip:port / localhost) of the MySQL engine.
 _mysql_user = None        # User with write permission on the db.
 _mysql_pass = None        # Password for that user.
 _mysql_database = None    # Name of the database.
+_mysql_dbtable = None     # Name of the table
 _mysql_port = None        # Port of the MySQL server.
 
 _local_timezone     = +1     # UTC+1
