@@ -18,11 +18,40 @@ the invaluable help of:
  - Laura Barbas (OAN)
  - Pablo de Vicente (OAN)
 
+Thanks to Jens Scheidtmann, for making the installation more foolproof for beginning users. 
+
+INSTALLATION
+============
+
+ # Download pySQM from its GitHub page at https://github.com/mireianievas/PySQM, by clicking on the green "Code" button 
+   at the top right and choosing "Download Zip". 
+
+ # Extract the zip in a directory of your choice. 
+
+ # Check that you've installed python2 (2.7): 
+   
+   $ python --version 
+   $ python2 --version
+
+ # Then install all prerequisits by running:
+
+   $ python2 -m pip -r requirements.txt
+
+   (If you don't have pip installed, check your Linux distribution, how to install it. If that fails, search for "get-pip.py")
+
+Note that the software may need a few additional packages to be installed.
+ * A few of the python packages will compile some C code, so you need to have python-dev, build-essential or similar.
+ * If you want to use mysql, you need to install the respective client packages.
+ * If you want to be notified by email, you need to install the respective email client.
+
+Again you'll need to check your linux distribution how to do this. 
+The error message should be verbose enough to give you an indication where it fails and then try 
+"install python <package> on <your linux distribution>" on Google.
 
 SETUP
 =====
 
-After downloading the software, you need to modify the file config.py. 
+After installing the software, you need to modify the file config.py. 
 In this file you will find several variables that need to be configured
 to match your hardware settings. For example:
 
