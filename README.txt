@@ -37,7 +37,8 @@ INSTALLATION
 
    $ python2 -m pip -r requirements.txt
 
-   (If you don't have pip installed, check your Linux distribution, how to install it. If that fails, search for "get-pip.py")
+   (If you don't have pip installed, check your Linux distribution, how to install it. 
+   If that fails, search for "get-pip.py")
 
 Note that the software may need a few additional packages to be installed on your computer.
  * A few of the python packages will compile some C code, so you need to have python-dev, build-essential or similar.
