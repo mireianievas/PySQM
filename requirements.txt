@@ -1,0 +1,7 @@
+numpy
+ephem
+serial
+matplotlib
+# mysqlclient
+# mysql
+# email
