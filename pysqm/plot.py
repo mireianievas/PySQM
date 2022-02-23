@@ -453,7 +453,7 @@ class Plot(object):
          'Sky Brightness ('+config._device_shorttype+'-'+\
          config._observatory_name+')\n',fontsize='x-large')
         self.thegraph_sunalt.set_xlabel('Solar altitude (deg)',fontsize='large')
-        self.thegraph_sunalt.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
+        self.thegraph_sunalt.set_ylabel('Sky Brightness (mag/arcsec$\mathregular{^2}$)',fontsize='medium')
 
         # Auxiliary plot (Temperature)
         '''
@@ -496,7 +496,7 @@ class Plot(object):
         #self.thegraph_time.set_title('Sky Brightness (SQM-'+config._observatory_name+')',\
         # fontsize='x-large')
         self.thegraph_time.set_xlabel('Time (UTC'+UTC_offset_label+')',fontsize='large')
-        self.thegraph_time.set_ylabel('Sky Brightness (mag/arcsec2)',fontsize='medium')
+        self.thegraph_time.set_ylabel('Sky Brightness (mag/arcsec$\mathregular{^2}$)',fontsize='medium')
 
         # Auxiliary plot (Temperature)
         '''
