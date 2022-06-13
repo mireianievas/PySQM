@@ -122,14 +122,21 @@ class Ephemerids(object):
         self.Observatory.horizon = str(twilight)
         self.Observatory.date = str(self.end_of_the_day(thedate))
 
-        self.twilight_prev_rise = self.ephem_date_to_datetime(\
-         self.Observatory.previous_rising(ephem.Sun(),use_center=True))
-        self.twilight_prev_set = self.ephem_date_to_datetime(\
-         self.Observatory.previous_setting(ephem.Sun(),use_center=True))
-        self.twilight_next_rise = self.ephem_date_to_datetime(\
-         self.Observatory.next_rising(ephem.Sun(),use_center=True))
-        self.twilight_next_set = self.ephem_date_to_datetime(\
-         self.Observatory.next_setting(ephem.Sun(),use_center=True))
+        try:
+            self.twilight_prev_rise = self.ephem_date_to_datetime(\
+            self.Observatory.previous_rising(ephem.Sun(),use_center=True))
+            self.twilight_prev_set = self.ephem_date_to_datetime(\
+            self.Observatory.previous_setting(ephem.Sun(),use_center=True))
+            self.twilight_next_rise = self.ephem_date_to_datetime(\
+            self.Observatory.next_rising(ephem.Sun(),use_center=True))
+            self.twilight_next_set = self.ephem_date_to_datetime(\
+            self.Observatory.next_setting(ephem.Sun(),use_center=True))
+        # If you're north or south enough, night or the twilights might not exist. 
+        # Here we are catching the root class of the exception hierarchy 
+        # to catch NeverUpError or AlwaysUpError
+        except ephem.CircumpolarError:
+            # Trying to ignore that (and relying on the twilight_* vars to be initialised so, that plotting happens anyway)
+            pass
 
 
 
