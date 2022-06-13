@@ -123,20 +123,24 @@ class Ephemerids(object):
         self.Observatory.date = str(self.end_of_the_day(thedate))
 
         try:
-            self.twilight_prev_rise = self.ephem_date_to_datetime(\
-            self.Observatory.previous_rising(ephem.Sun(),use_center=True))
+            ## Plotting only uses twilight_prev_set and twilight_next_rise
+            # self.twilight_prev_rise = self.ephem_date_to_datetime(\
+            # self.Observatory.previous_rising(ephem.Sun(),use_center=True)) 
             self.twilight_prev_set = self.ephem_date_to_datetime(\
             self.Observatory.previous_setting(ephem.Sun(),use_center=True))
             self.twilight_next_rise = self.ephem_date_to_datetime(\
             self.Observatory.next_rising(ephem.Sun(),use_center=True))
-            self.twilight_next_set = self.ephem_date_to_datetime(\
-            self.Observatory.next_setting(ephem.Sun(),use_center=True))
-        # If you're north or south enough, night or the twilights might not exist. 
+            # self.twilight_next_set = self.ephem_date_to_datetime(\
+            # self.Observatory.next_setting(ephem.Sun(),use_center=True))
+        # If you're north or south enough, night, day or the twilights might not exist. 
         # Here we are catching the root class of the exception hierarchy 
         # to catch NeverUpError or AlwaysUpError
         except ephem.CircumpolarError:
-            # Trying to ignore that (and relying on the twilight_* vars to be initialised so, that plotting happens anyway)
-            pass
+            # self.twilight_prev_rise = None
+            self.twilight_prev_set = None
+            self.twilight_next_rise = None
+            # self.twilight_next_set = None 
+            
 
 
 
@@ -349,9 +353,12 @@ class SQMData(object):
             y=np.convolve(w/w.sum(),s,mode='valid')
             return(y)
 
-        astronomical_night_filter = (\
-         (np.array(self.all_night_dt)>Ephem.twilight_prev_set)*\
-         (np.array(self.all_night_dt)<Ephem.twilight_next_rise))
+        if Ephem.twilight_prev_set is not None and Ephem.twiligth_next_rise is not None:
+            astronomical_night_filter = (\
+            (np.array(self.all_night_dt)>Ephem.twilight_prev_set)*\
+            (np.array(self.all_night_dt)<Ephem.twilight_next_rise))
+        else: # No astronomical twilight at current location (poor lads)
+            astronomical_night_filter = (0)
 
         if np.sum(astronomical_night_filter)>10:
             self.astronomical_night_sb = \
@@ -436,6 +443,10 @@ class Plot(object):
         '''
         Plot vertical lines on the astronomical twilights
         '''
+        # If twilight is not defined, skip plotting
+        if Ephem.twilight_prev_set is None or Ephem.twilight_next_rise is None: 
+            return 
+
         self.thegraph_time.axvline(\
          Ephem.twilight_prev_set+timedelta(hours=config._local_timezone),\
          color='black', ls='dashdot', lw=1, alpha=0.75, clip_on=True)
