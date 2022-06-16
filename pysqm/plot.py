@@ -81,7 +81,7 @@ class Ephemerids(object):
         Moon = ephem.Moon()
         Moon.compute(self.Observatory)
         self.moon_phase = Moon.phase
-        self.moon_maxelev = Moon.transit_alt
+        self.moon_maxelev = Moon.transit_alt # TODO: transit_alt deprecated, needs to be converted.
 
         try:
             float(self.moon_maxelev)
@@ -238,9 +238,15 @@ class SQMData(object):
         '''
         Get the important information from the raw_data
         and put it in a more useful format
+
+        Splits string read from file into columns, converts string formats into python binary formats.
+        if data and timezone config disagree return 1 (and no data is processed)
         '''
+
+        # Split rows on ";"
         self.raw_data = format_value_list(self.raw_data)
 
+        # convert to Python data formats
         for k,line in enumerate(self.raw_data):
             # DateTime extraction
             utcdatetime = self.process_datetimes(line[0])
@@ -248,7 +254,11 @@ class SQMData(object):
 
             # Check that datetimes are corrent
             calc_localdatetime = utcdatetime+timedelta(hours=config._local_timezone)
-            if (calc_localdatetime != localdatetime): return 1
+            if (calc_localdatetime != localdatetime): 
+                print("WARNING: Difference between localtime and utctime in data DO NOT MATCH configured timezone difference. Check config.py ")
+                print("**** ABORT processing raw data ****")
+                print("No data will be plotted")
+                return 1
 
             # Set the datetime for astronomical calculations.
             Ephem.Observatory.date = ephem.date(utcdatetime)
@@ -325,7 +335,7 @@ class SQMData(object):
         Useful to summarize night conditions.
         '''
         def select_bests(values,number):
-            return(np.sort(values)[::-1][0:number])
+            return(np.sort(values)[::-1][0:int(number)])
 
         def fourier_filter(array,nterms):
             '''
@@ -339,12 +349,11 @@ class SQMData(object):
     
         def window_smooth(x,window_len=10,window='hanning'):
             # http://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
-            if x.ndim != 1: raise ValueError, "smooth requires 1-d arrays"
-            if x.size < window_len: raise ValueError, "size(input) < window_size"
+            if x.ndim != 1: raise ValueError("smooth requires 1-d arrays")
+            if x.size < window_len: raise ValueError("size(input) < window_size")
             if window_len < 3: return x
             if not window in ['flat','hanning','hamming','bartlett','blackman']:
-                raise ValueError, \
-                "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+                raise ValueError("Window is one of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
             s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
             if window == 'flat': #moving average
                 w=np.ones(window_len,'d')
@@ -368,9 +377,9 @@ class SQMData(object):
         else:
             print(\
              'Warning, < 10 points in astronomical night, '+\
-             ' using the whole night data instead')
-            self.astronomical_night_sb = self.all_night_sb
-            self.astronomical_night_temp = self.all_night_temp
+             'using the whole night data instead')
+            self.astronomical_night_sb = np.array(self.all_night_sb)
+            self.astronomical_night_temp = np.array(self.all_night_temp)
 
         Stat = self.Statistics
         #with self.Statistics as Stat:
@@ -379,7 +388,7 @@ class SQMData(object):
         Stat.median = np.median(self.astronomical_night_sb)
         Stat.std    = np.median(self.astronomical_night_sb)
         Stat.number = np.size(self.astronomical_night_sb)
-        # Only the best 1/100th.
+        # Only the best 1/25.
         Stat.bests_number = 1+Stat.number/25
         Stat.bests_mean   = np.mean(select_bests(self.astronomical_night_sb,Stat.bests_number))
         Stat.bests_median = np.median(select_bests(self.astronomical_night_sb,Stat.bests_number))
@@ -461,7 +470,7 @@ class Plot(object):
         if twinplot = 1, this will be the first subplot
         if twinplot = 2, this will be the second subplot
         '''
-        if twinplot is 0:
+        if twinplot == 0:
             self.thegraph_sunalt = self.thefigure.add_subplot(1,1,1)
         else:
             self.thegraph_sunalt = self.thefigure.add_subplot(2,1,twinplot)
@@ -496,11 +505,11 @@ class Plot(object):
     def make_subplot_time(self,twinplot=0):
         '''
         Make a subplot.
-        If twinplot = 0, then this will be the only plot in the figure
-        if twinplot = 1, this will be the first subplot
-        if twinplot = 2, this will be the second subplot
+        If twinplot == 0, then this will be the only plot in the figure
+        if twinplot == 1, this will be the first subplot
+        if twinplot == 2, this will be the second subplot
         '''
-        if twinplot is 0:
+        if twinplot == 0:
             self.thegraph_time = self.thefigure.add_subplot(1,1,1)
         else:
             self.thegraph_time = self.thefigure.add_subplot(2,1,twinplot)
