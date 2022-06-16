@@ -395,7 +395,7 @@ class SQMData(object):
         Stat.bests_std    = np.std(select_bests(self.astronomical_night_sb,Stat.bests_number))
         Stat.bests_err    = Stat.bests_std*1./np.sqrt(Stat.bests_number)
 
-        Stat.model_nterm = 1+Stat.number/25
+        Stat.model_nterm = 1+int(Stat.number/25)
         #data_smooth = fourier_filter(self.astronomical_night_sb,nterms=Stat.model_nterm)
         data_smooth = window_smooth(self.astronomical_night_sb,
                 window_len=Stat.model_nterm)
