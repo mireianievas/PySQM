@@ -231,16 +231,17 @@ class device(observatory):
         DEV_ID = str(config._device_id)+"_"+str(self.serial_number)
 
         def send_data(data):
-            try:
-                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                client.connect((DC_HOST, DC_PORT))
-                client.sendall(data)
-                client.shutdown(socket.SHUT_RDWR)
-                client.close()
-            except:
-                return(0)
-            else:
-                return(1)
+            pass
+        #     try:
+        #         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #         client.connect((DC_HOST, DC_PORT))
+        #         client.sendall(data)
+        #         client.shutdown(socket.SHUT_RDWR)
+        #         client.close()
+        #     except:
+        #         return(0)
+        #     else:
+        #         return(1)
 
         def write_buffer():
             for data_line in self.DataBuffer[:]:
