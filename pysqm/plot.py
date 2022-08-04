@@ -362,7 +362,7 @@ class SQMData(object):
             y=np.convolve(w/w.sum(),s,mode='valid')
             return(y)
 
-        if Ephem.twilight_prev_set is not None and Ephem.twiligth_next_rise is not None:
+        if Ephem.twilight_prev_set is not None and Ephem.twilight_next_rise is not None:
             astronomical_night_filter = (\
             (np.array(self.all_night_dt)>Ephem.twilight_prev_set)*\
             (np.array(self.all_night_dt)<Ephem.twilight_next_rise))
