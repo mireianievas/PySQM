@@ -28,7 +28,6 @@ import time
 import datetime
 import argparse
 
-
 '''
 Read input arguments (if any)
 '''
@@ -57,7 +56,7 @@ def relaxed_import(themodule):
 
 relaxed_import('socket')
 relaxed_import('serial')
-relaxed_import('_mysql')
+relaxed_import('mysql')
 relaxed_import('pysqm.email')
 
 
@@ -73,13 +72,7 @@ if config._device_type == 'SQM-LE':
 elif config._device_type == 'SQM-LU':
     import serial
 if config._use_mysql == True:
-    import _mysql
-
-
-# Create directories if needed
-for directory in [config.monthly_data_directory,config.daily_data_directory,config.current_data_directory]:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    import mysql
 
 
 '''
@@ -109,7 +102,7 @@ def loop():
         ''' The programs works as a daemon '''
         utcdt = mydevice.read_datetime()
         #print (str(mydevice.local_datetime(utcdt))),
-        if mydevice.is_nighttime(observ):
+        if mydevice.is_nighttime(observ) or True:
             # If we are in a new night, create the new file.
             config._send_to_datacenter = False ### Not enabled by default
             if config._send_to_datacenter: 

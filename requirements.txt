@@ -2,6 +2,7 @@ numpy
 ephem
 serial
 matplotlib
+tzdata
 # mysqlclient
 # mysql
 # email

@@ -26,6 +26,7 @@ ____________________________
 import math
 import ephem
 import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 # Read the config variables from config.py
 import pysqm.settings as settings
@@ -76,7 +77,10 @@ class observatory(object):
 
     def local_datetime(self,utc_dt):
         # Get Local datetime from the computer, without daylight saving.
-        return(utc_dt + datetime.timedelta(hours=config._local_timezone))
+        try:
+            return datetime.datetime.now(tz=ZoneInfo(config._timezone))
+        except ZoneInfoNotFoundError:
+            return(utc_dt + datetime.timedelta(hours=config._local_timezone))
 
     def calculate_sun_altitude(self,OBS,timeutc):
         # Calculate Sun altitude
