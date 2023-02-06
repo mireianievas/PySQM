@@ -23,6 +23,7 @@ along with PySQM.  If not, see <http://www.gnu.org/licenses/>.
 ____________________________
 '''
 
+from ast import Try
 import os,sys
 import ephem
 import numpy as np
@@ -32,19 +33,13 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime,timedelta
+from zoneinfo import ZoneInfo
 
 # Read configuration
 
 if __name__ != '__main__':
     import pysqm.settings as settings
     config = settings.GlobalConfig.config
-
-    for directory in [\
-        config.monthly_data_directory,\
-        config.daily_graph_directory,\
-        config.current_graph_directory]:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
 
 
 class Ephemerids(object):
@@ -179,10 +174,18 @@ class SQMData(object):
          if format_value(line)[0]=='#']
 
         # Extract the serial number
-        serial_number_line = [\
-         line for line in metadata_lines \
-         if 'SQM serial number:' in line][0]
-        self.serial_number = format_value(serial_number_line.split(':')[-1])
+        if not len(metadata_lines) == 0:
+            self.serial_number = '00000000'
+            return
+
+        try:
+            serial_number_line = [\
+                line for line in metadata_lines \
+                if 'SQM serial number:' in line][0]
+            self.serial_number = format_value(serial_number_line.split(':')[-1])
+        except IndexError:
+            self.serial_number = '00000000'
+
 
     def check_validdata(self,data_line):
         from pysqm.common import format_value
@@ -232,6 +235,12 @@ class SQMData(object):
                 second = 0
 
         return(datetime(year,month,day,hour,minute,second))
+    
+    def utc_offset(self):
+        """
+        """
+        now = datetime.now(tz=ZoneInfo(config._timezone))
+        return int(now.utcoffset().total_seconds() / 60 / 60)
 
     def process_rawdata(self,Ephem):
         from pysqm.common import format_value_list
@@ -245,16 +254,17 @@ class SQMData(object):
 
         # Split rows on ";"
         self.raw_data = format_value_list(self.raw_data)
-
+       
         # convert to Python data formats
         for k,line in enumerate(self.raw_data):
             # DateTime extraction
             utcdatetime = self.process_datetimes(line[0])
             localdatetime = self.process_datetimes(line[1])
 
-            # Check that datetimes are corrent
-            calc_localdatetime = utcdatetime+timedelta(hours=config._local_timezone)
-            if (calc_localdatetime != localdatetime): 
+            # Check that datetimes are corrent)
+            calc_localdatetime = utcdatetime+timedelta(hours=self.utc_offset())
+ 
+            if ((calc_localdatetime - localdatetime) > timedelta(minutes=60)): 
                 print("WARNING: Difference between localtime and utctime in data DO NOT MATCH configured timezone difference. Check config.py ")
                 print("**** ABORT processing raw data ****")
                 print("No data will be plotted")
@@ -362,7 +372,7 @@ class SQMData(object):
             y=np.convolve(w/w.sum(),s,mode='valid')
             return(y)
 
-        if Ephem.twilight_prev_set is not None and Ephem.twiligth_next_rise is not None:
+        if Ephem.twilight_prev_set is not None and Ephem.twilight_next_rise is not None:
             astronomical_night_filter = (\
             (np.array(self.all_night_dt)>Ephem.twilight_prev_set)*\
             (np.array(self.all_night_dt)<Ephem.twilight_next_rise))
@@ -760,7 +770,7 @@ def save_stats_to_file(Night,NSBData,Ephem):
         '\n'
 
     statistics_filename = \
-     config.summary_data_directory+'/Statistics_'+\
+     config.data_directory+'/Statistics_'+\
      str(config._device_shorttype+'_'+config._observatory_name)+'.dat'
 
     print('Writing statistics file')
@@ -832,7 +842,7 @@ def make_plot(input_filename=None,send_emails=False,write_stats=False):
     print('Plotting photometer data ...')
 
     if (input_filename is None):
-        input_filename  = config.current_data_directory+\
+        input_filename  = config.data_directory+\
          '/'+config._device_shorttype+'_'+config._observatory_name+'.dat'
 
     # Define the observatory in ephem
@@ -856,7 +866,7 @@ def make_plot(input_filename=None,send_emails=False,write_stats=False):
     NSBPlot = Plot(NSBData,Ephem)
 
     output_filenames = [\
-        str("%s/%s_%s.png" %(config.current_data_directory,\
+        str("%s/%s_%s.png" %(config.data_directory,\
             config._device_shorttype,config._observatory_name)),\
         str("%s/%s_120000_%s-%s.png" \
             %(config.daily_graph_directory, str(NSBData.Night).replace('-',''),\

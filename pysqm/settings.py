@@ -45,7 +45,7 @@ class ArgParser:
 
 
 class ConfigFile:
-    def __init__(self, path="config.py"):
+    def __init__(self, path=None):
         # Guess the selected dir and config filename
         # Should accept:
         # - absolute path (inc. filename)
@@ -53,7 +53,10 @@ class ConfigFile:
         # - absolute path (exc. filename)
         # - relative path (exc. filename)
         # - shortcouts like ~ . etc
-        self.path = path
+        if (not path):
+            self.path = sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath("config.py"))))
+        else:
+            self.path = path
         self.config = None
 
     def read_config_file(self,path):
@@ -68,6 +71,7 @@ class ConfigFile:
 
         old_syspath = sys.path
         sys.path.append(directory)
+        import config as config
         exec("import %s as config" %filename.split(".")[0])
         self.config = config
 

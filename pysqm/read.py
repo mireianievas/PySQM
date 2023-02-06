@@ -31,6 +31,7 @@ import datetime
 import numpy as np
 import struct
 import socket
+from zoneinfo import ZoneInfo
 
 # Default, to ignore the length of the read string.
 _cal_len_  = None
@@ -49,7 +50,7 @@ def relaxed_import(themodule):
     except: pass
 
 relaxed_import('serial')
-relaxed_import('_mysql')
+relaxed_import('MySQLdb')
 relaxed_import('pysqm.email')
 
 '''
@@ -75,7 +76,7 @@ if config._device_type == 'SQM-LE':
 elif config._device_type == 'SQM-LU':
     import serial
 if config._use_mysql == True:
-    import _mysql
+    from MySQLdb import _mysql as mysql
 
 
 def filtered_mean(array,sigma=3):
@@ -133,15 +134,22 @@ class device(observatory):
         header_content = header_content.replace(\
          '$OFFSET',str(config._offset_calibration))
 
-        if config._local_timezone==0:
+        utc_offset = None
+        if (config._timezone):
+            now = datetime.datetime.now(tz=ZoneInfo(config._timezone))
+            utc_offset = int(now.utcoffset().total_seconds() / 60 / 60)
+        elif (config._local_timezone):
+            utc_offset = int(config._local_timezone)
+
+        if utc_offset==0:
             header_content = header_content.replace(\
              '$TIMEZONE','UTC')
-        elif config._local_timezone>0:
+        elif utc_offset>0:
             header_content = header_content.replace(\
-             '$TIMEZONE','UTC+'+str(config._local_timezone))
-        elif config._local_timezone<0:
+             '$TIMEZONE','UTC+'+str(utc_offset))
+        elif utc_offset<0:
             header_content = header_content.replace(\
-             '$TIMEZONE','UTC'+str(config._local_timezone))
+             '$TIMEZONE','UTC'+str(utc_offset))
 
         header_content = header_content.replace(\
          '$PROTOCOL_NUMBER',str(self.protocol_number))
@@ -188,7 +196,7 @@ class device(observatory):
         yearmonthday = str(date_file)[0:10]
 
         self.monthly_datafile = \
-         config.monthly_data_directory+"/"+config._device_shorttype+\
+         config.data_directory+"/"+config._device_shorttype+\
          "_"+config._observatory_name+"_"+yearmonth+".dat"
         #self.daily_datafile = \
         # config.daily_data_directory+"/"+config._device_shorttype+\
@@ -198,7 +206,7 @@ class device(observatory):
          yearmonthday.replace('-','')+'_120000_'+\
          config._device_shorttype+'-'+config._observatory_name+'.dat'
         self.current_datafile = \
-         config.current_data_directory+"/"+config._device_shorttype+\
+         config.data_directory+"/"+config._device_shorttype+\
          "_"+config._observatory_name+".dat"
 
     def save_data(self,formatted_data):
@@ -286,22 +294,23 @@ class device(observatory):
         values = formatted_data.split(';')
         try:
             ''' Start database connection '''
-            mydb = _mysql.connect(\
+            mydb = mysql.connect(\
              host = config._mysql_host,
              user = config._mysql_user,
-             passwd = config._mysql_pass,
-             db = config._mysql_database,
+             password = config._mysql_pass,
+             database = config._mysql_database,
              port = config._mysql_port)
 
             ''' Insert the data '''
-            mydb.query(\
-             "INSERT INTO "+str(config._mysql_dbtable)+" VALUES (NULL,'"+\
+            mysql_insert = "INSERT INTO "+str(config._mysql_dbtable)+" VALUES ('"+\
              values[0]+"','"+values[1]+"',"+\
              values[2]+","+values[3]+","+\
-             values[4]+","+values[5]+")")
-        except Exception, ex:
+             values[4]+","+values[5]+")"
+            mydb.query(mysql_insert)
+        except Exception as ex:
             print(str(inspect.stack()[0][2:4][::-1])+\
              ' DB Error. Exception: %s' % str(ex))
+            print(mysql_insert)
 
         if mydb != None:
             mydb.close()
@@ -319,10 +328,12 @@ class device(observatory):
 
         self.DataCache = self.DataCache+formatted_data
 
-        if len(self.DataCache.split("\n"))>=number_measures+1:
-            self.save_data(self.DataCache)
-            self.DataCache = ""
-            print(str(niter)+'\t'+formatted_data[:-1])
+        #if len(self.DataCache.split("\n"))>=number_measures+1:
+        self.save_data(self.DataCache)
+        self.DataCache = ""
+        print(str(niter)+'\t'+formatted_data[:-1])
+        #else:
+        #print("Invalid DataCache {} != {}".format(len(self.DataCache.split("\n")), number_measures+1))
 
     def flush_cache(self):
         ''' Flush the data cache '''
@@ -474,6 +485,7 @@ class SQMLE(SQM):
             self.start_connection()
 
         # Clearing buffer
+
         print('Clearing buffer ... |'),
         buffer_data = self.read_buffer()
         print(buffer_data),
@@ -498,14 +510,14 @@ class SQMLE(SQM):
         buf=''
         starttime = time.time()
 
-        print "Looking for replies; press Ctrl-C to stop."
+        print("Looking for replies; press Ctrl-C to stop")
         addr=[None,None]
         while True:
             try:
                 (buf, addr) = self.s.recvfrom(30)
                 if buf[3].encode("hex")=="f7":
-                    print "Received from %s: MAC: %s" % \
-                     (addr, buf[24:30].encode("hex"))
+                    print("Received from %s: MAC: %s" % \
+                     (addr, buf[24:30].encode("hex")))
             except:
                 #Timeout in seconds. Allow all devices time to respond
                 if time.time()-starttime > 3:
@@ -545,8 +557,12 @@ class SQMLE(SQM):
     def read_buffer(self):
         ''' Read the data '''
         msg = None
-        try: msg = self.s.recv(256)
-        except: pass
+        try:
+            msg = self.s.recv(255).decode()
+        except ConnectionAbortedError as ex:
+            print(ex)
+            self.start_connection()
+
         return(msg)
 
     def reset_device(self):
@@ -557,7 +573,7 @@ class SQMLE(SQM):
 
     def read_metadata(self,tries=1):
         ''' Read the serial number, firmware version '''
-        self.s.send('ix')
+        self.s.send(b'ix')
         time.sleep(1)
 
         read_err = False
@@ -591,7 +607,7 @@ class SQMLE(SQM):
 
     def read_calibration(self,tries=1):
         ''' Read the calibration parameters '''
-        self.s.send('cx')
+        self.s.send(b'cx')
         time.sleep(1)
 
         read_err = False
@@ -624,7 +640,7 @@ class SQMLE(SQM):
 
     def read_data(self,tries=1):
         ''' Read the SQM and format the Temperature, Frequency and NSB measures '''
-        self.s.send('rx')
+        self.s.send(b'rx')
         time.sleep(1)
 
         read_err = False
@@ -710,7 +726,7 @@ class SQMLU(SQM):
         used_port = None
         for port in ports:
             conn_test = serial.Serial(port, 115200, timeout=1)
-            conn_test.write('ix')
+            conn_test.write(b'ix')
             if conn_test.readline()[0] == 'i':
                 used_port = port
                 break
@@ -754,7 +770,7 @@ class SQMLU(SQM):
 
     def read_metadata(self,tries=1):
         ''' Read the serial number, firmware version '''
-        self.s.write('ix')
+        self.s.write(b'ix')
         time.sleep(1)
 
         read_err = False
@@ -788,7 +804,7 @@ class SQMLU(SQM):
 
     def read_calibration(self,tries=1):
         ''' Read the calibration data '''
-        self.s.write('cx')
+        self.s.write(b'cx')
         time.sleep(1)
 
         read_err = False
@@ -821,7 +837,7 @@ class SQMLU(SQM):
 
     def read_data(self,tries=1):
         ''' Read the SQM and format the Temperature, Frequency and NSB measures '''
-        self.s.write('rx')
+        self.s.write(b'rx')
         time.sleep(1)
 
         read_err = False
